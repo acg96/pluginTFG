@@ -1,0 +1,17 @@
+{
+    "name": "EyeSecure",
+    "version": "1.0.0",
+    "description": "Extension which controls access to resources on the web",
+    "permissions": ["webRequest", "tabs", "storage", "webRequestBlocking", "*://*/*"],
+    "background": {
+        "scripts": ["backgroundWebRequest.js"],
+        "persistent": true
+    },
+    "icons": {
+        "16": "images/icon16.png",
+        "32": "images/icon32.png",
+        "48": "images/icon48.png",
+        "128": "images/icon128.png"
+    },
+    "manifest_version": 2
+}
