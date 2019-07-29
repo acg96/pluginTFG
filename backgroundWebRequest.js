@@ -1,6 +1,8 @@
-var waitPageUrl= "chrome-extension://pnhepmckfbdbllddbmfobfeccpkkcgpg/waitingResponse.html";
-var bannedPageUrl= "chrome-extension://pnhepmckfbdbllddbmfobfeccpkkcgpg/bannedRequest.html";
-var loginPageUrl= "chrome-extension://pnhepmckfbdbllddbmfobfeccpkkcgpg/withoutLogIn.html";
+var extID= "pnhepmckfbdbllddbmfobfeccpkkcgpg";
+var chromeExtScheme= "chrome-extension://";
+var waitPageUrl= chromeExtScheme + extID +"/waitingResponse.html";
+var bannedPageUrl= chromeExtScheme + extID +"/bannedRequest.html";
+var loginPageUrl= chromeExtScheme + extID +"/withoutLogIn.html";
 var urlCode= "?url45_li3_32d69_345d_=";
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -12,7 +14,7 @@ chrome.runtime.onInstalled.addListener(() => {
         }, {urls: ["*://*/*"]}, ["blocking"]);
 });
 
-async function checkAPI(value, url, tab){
+async function checkAPI(token, url, tab){
 	//AJAX request to ensure the user has privileges
 }
   
@@ -22,6 +24,7 @@ chrome.runtime.onInstalled.addListener(() => {
 		let url= urlStr.split(urlCode)[1];
 		let isWaitingPage= urlStr.indexOf(waitPageUrl) != -1 && changeInfo.status === "complete";
 		if (isWaitingPage) {
+			chrome.tabs.remove(tab.id, ()=>{});
 			chrome.storage.local.get(['tkUser'], value => checkToken(value, url, tab));
 		}
 	});
@@ -29,10 +32,9 @@ chrome.runtime.onInstalled.addListener(() => {
 
 
 async function checkToken(value, url, tab){
-	chrome.tabs.remove(tab.id, ()=>{});
 	if (typeof value.tkUser === "undefined"){
 		chrome.tabs.create({url: loginPageUrl + urlCode + url});
 	} else {
-		//checkAPI(value, url, tab);
+		checkAPI(value, url, tab);
 	}
 }
