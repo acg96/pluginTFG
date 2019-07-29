@@ -1,15 +1,38 @@
-chrome.runtime.onInstalled.addListener(function() {
+var waitPageUrl= "chrome-extension://pnhepmckfbdbllddbmfobfeccpkkcgpg/waitingResponse.html";
+var bannedPageUrl= "chrome-extension://pnhepmckfbdbllddbmfobfeccpkkcgpg/bannedRequest.html";
+var loginPageUrl= "chrome-extension://pnhepmckfbdbllddbmfobfeccpkkcgpg/withoutLogIn.html";
+var urlCode= "?url45_li3_32d69_345d_=";
+
+chrome.runtime.onInstalled.addListener(() => {
     chrome.webRequest.onBeforeRequest.addListener(
-        function(result){
-            var url = result.url;
-            //AJAX request to ensure the user has privileges
-            let notAllow = url.indexOf("google") != -1; //now block all the urls which contain google
-            var response = {};
-            if (notAllow) {
-                let initiator = result.initiator; //undefined if the user request it, otherwise it'll have the url which requested it
-                let timestamp = result.timeStamp; //request time (ms)
-                response = {redirectUrl: "chrome-extension://pnhepmckfbdbllddbmfobfeccpkkcgpg/bannedRequest.html?url_=" +url};
-            }
-            return response;
+        result => {
+            let url = result.url;
+            let response = {redirectUrl: waitPageUrl + urlCode +url};
+			return response;
         }, {urls: ["*://*/*"]}, ["blocking"]);
-  });
+});
+
+async function checkAPI(value, url, tab){
+	//AJAX request to ensure the user has privileges
+}
+  
+chrome.runtime.onInstalled.addListener(() => {
+	chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+		let urlStr= tab.url;
+		let url= urlStr.split(urlCode)[1];
+		let isWaitingPage= urlStr.indexOf(waitPageUrl) != -1 && changeInfo.status === "complete";
+		if (isWaitingPage) {
+			chrome.storage.local.get(['tkUser'], value => checkToken(value, url, tab));
+		}
+	});
+});
+
+
+async function checkToken(value, url, tab){
+	chrome.tabs.remove(tab.id, ()=>{});
+	if (typeof value.tkUser === "undefined"){
+		chrome.tabs.create({url: loginPageUrl + urlCode + url});
+	} else {
+		//checkAPI(value, url, tab);
+	}
+}
