@@ -68,6 +68,16 @@ chrome.runtime.onInstalled.addListener(() => {
 		}
 	});
 	
+	chrome.windows.onCreated.addListener(windowObj => { //When a window is created
+		chrome.windows.getAll(windows => { //It gets all the normals and popups
+		alert(windows.length);
+			if (windows.length === 1){ //If it's the first window
+				chrome.storage.local.remove(['tkUser']);
+				localStorage.removeItem("url");
+			}
+		});
+	});
+	
 	chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { //When a tab is updated
 		let urlStr= tab.url;
 		let urlSearch= new URL(urlStr);
