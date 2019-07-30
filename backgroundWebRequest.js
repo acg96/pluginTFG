@@ -2,6 +2,7 @@ var apiURL= "http://localhost:7991";
 var waitPageUrl= chrome.runtime.getURL("/waitingResponse.html");
 var bannedPageUrl= chrome.runtime.getURL("/bannedRequest.html");
 var loginPageUrl= chrome.runtime.getURL("/withoutLogIn.html");
+var serverErrorPagePageUrl= chrome.runtime.getURL("/serverErrorPage.html");
 var urlCode= "url_";
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -23,23 +24,31 @@ chrome.runtime.onInstalled.addListener(() => {
         }, {urls: ["*://*/*"]}, ["blocking"]);
 });
 
-async function checkRequestAPI(token, urlDecoded, tab){ //TODO
-	localStorage.setItem("url", urlDecoded);
-	chrome.tabs.create({url: urlDecoded});
-	
-	
-	//Remove localStorage.url if it's not allowed the current request either being needed to be logged in or being denied
-	//AJAX request to ensure the user has privileges TODO
-	/*var xhr = new XMLHttpRequest();
-	xhr.open("GET", "localhost:7991/api/", true);
-xhr.onreadystatechange = function() {
-  if (xhr.readyState == 4) {
-    // JSON.parse does not evaluate the attacker's scripts.
-    var resp = JSON.parse(xhr.responseText);
-  }
-}
-xhr.send();*/
-	
+async function checkRequestAPI(token, urlDecoded, tab){
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", apiURL + "/api/std/checkAccess?" + urlCode + "=" + encodeURIComponent(urlDecoded), true);
+	xhr.setRequestHeader('uInfo', token);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4) {
+			try{
+				var resp = JSON.parse(xhr.responseText);
+				if (resp.access === true && resp.privileges === true){
+					localStorage.setItem("url", urlDecoded);
+					chrome.tabs.update(tab.id, {url: urlDecoded});
+				} else if (resp.access === true && resp.privileges === false) {
+					localStorage.removeItem("url");
+					chrome.tabs.update(tab.id, {url: bannedPageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded)});
+				} else if (resp.access === false) {
+					localStorage.removeItem("url");
+					chrome.storage.local.remove(['tkUser'], () => checkToken(undefined, urlDecoded, tab));
+				}
+			}catch(e){
+				localStorage.removeItem("url");
+				chrome.tabs.update(tab.id, {url: serverErrorPagePageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded)});
+			}
+		}
+	}
+	xhr.send();	
 }
   
 chrome.runtime.onInstalled.addListener(() => {
@@ -49,7 +58,6 @@ chrome.runtime.onInstalled.addListener(() => {
 		let url= decodeURIComponent(urlSearch.searchParams.get(urlCode));
 		let isWaitingPage= urlStr.indexOf(waitPageUrl) != -1 && changeInfo.status === "complete";
 		if (isWaitingPage) { //If is waitingPage is meant that it needs to be checked the token and the privileges of the requested url
-			chrome.tabs.remove(tab.id, ()=>{});
 			chrome.storage.local.get(['tkUser'], value => checkToken(value, url, tab));
 		}
 	});
@@ -57,10 +65,10 @@ chrome.runtime.onInstalled.addListener(() => {
 
 
 async function checkToken(value, urlDecoded, tab){
-	if (typeof value.tkUser === "undefined"){ //If not token is stored the request is redirected to the loginPageUrl
+	if (typeof value === "undefined" || typeof value.tkUser === "undefined"){ //If not token is stored the request is redirected to the loginPageUrl
 		localStorage.removeItem("url");
-		chrome.tabs.create({url: loginPageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded)});
+		chrome.tabs.update(tab.id, {url: loginPageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded)});
 	} else {
-		checkRequestAPI(value, urlDecoded, tab);
+		checkRequestAPI(value.tkUser, urlDecoded, tab);
 	}
 }
