@@ -2,7 +2,7 @@
     "name": "EyeSecure",
     "version": "1.0.0",
     "description": "Extension which controls access to resources on the web",
-    "permissions": ["webRequest", "tabs", "storage", "webRequestBlocking", "*://*/*"],
+    "permissions": ["webRequest", "tabs", "webNavigation", "history", "storage", "webRequestBlocking", "*://*/*"],
     "background": {
         "scripts": ["backgroundWebRequest.js"],
         "persistent": true
