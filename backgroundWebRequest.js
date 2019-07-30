@@ -1,9 +1,7 @@
-var extID= "pnhepmckfbdbllddbmfobfeccpkkcgpg";
 var apiURL= "http://localhost:7991";
-var chromeExtScheme= "chrome-extension://";
-var waitPageUrl= chromeExtScheme + extID +"/waitingResponse.html";
-var bannedPageUrl= chromeExtScheme + extID +"/bannedRequest.html";
-var loginPageUrl= chromeExtScheme + extID +"/withoutLogIn.html";
+var waitPageUrl= chrome.runtime.getURL("/waitingResponse.html");
+var bannedPageUrl= chrome.runtime.getURL("/bannedRequest.html");
+var loginPageUrl= chrome.runtime.getURL("/withoutLogIn.html");
 var urlCode= "url_";
 
 chrome.runtime.onInstalled.addListener(() => {
