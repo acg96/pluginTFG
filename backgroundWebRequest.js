@@ -5,24 +5,23 @@ var loginPageUrl= chrome.runtime.getURL("/withoutLogIn.html");
 var serverErrorPagePageUrl= chrome.runtime.getURL("/serverErrorPage.html");
 var urlCode= "url_";
 
-chrome.runtime.onInstalled.addListener(() => {
-	localStorage.removeItem("url");
-    chrome.webRequest.onBeforeRequest.addListener(
-        result => {
-			if (result.type !== "main_frame"){ //If it's not a main request
-				return {};
-			}
-			if (result.url.indexOf(apiURL) != -1 && result.initiator === undefined) { //If it's a connection to the API REST
-				return {};
-			}
-			if (localStorage.getItem("url") === decodeURI(result.url)){ //If the url has been allowed last time
-				return {};
-			}		
-            let url = encodeURIComponent(decodeURI(result.url));
-            let response = {redirectUrl: waitPageUrl + "?" + urlCode + "=" + url}; //Redirect the request to the waitPageUrl
-			return response;
-        }, {urls: ["*://*/*"]}, ["blocking"]);
-});
+localStorage.removeItem("url");
+
+chrome.webRequest.onBeforeRequest.addListener(
+	result => {
+		if (result.type !== "main_frame"){ //If it's not a main request
+			return {};
+		}
+		if (result.url.indexOf(apiURL) != -1 && result.initiator === undefined) { //If it's a connection to the API REST
+			return {};
+		}
+		if (localStorage.getItem("url") === decodeURI(result.url)){ //If the url has been allowed last time
+			return {};
+		}		
+		let url = encodeURIComponent(decodeURI(result.url));
+		let response = {redirectUrl: waitPageUrl + "?" + urlCode + "=" + url}; //Redirect the request to the waitPageUrl
+		return response;
+	}, {urls: ["*://*/*"]}, ["blocking"]);
 
 async function checkRequestAPI(token, urlDecoded, tab){
 	var xhr = new XMLHttpRequest();
@@ -51,42 +50,36 @@ async function checkRequestAPI(token, urlDecoded, tab){
 	xhr.send();	
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-	chrome.webNavigation.onCommitted.addListener(details => { //When a navigation is committed
-		//Used to avoid users go back to extension pages
-		if (details.transitionQualifiers.includes("forward_back")){ //If user go back
-			if (details.url.indexOf(chrome.runtime.id) != -1){
-				chrome.history.deleteUrl({url: details.url});
-				chrome.tabs.goBack(details.tabId, () => {});
-			}
+
+chrome.webNavigation.onCommitted.addListener(details => { //When a navigation is committed
+	//Used to avoid users go back to extension pages
+	if (details.transitionQualifiers.includes("forward_back")){ //If user go back
+		if (details.url.indexOf(chrome.runtime.id) != -1){
+			chrome.history.deleteUrl({url: details.url});
+			chrome.tabs.goBack(details.tabId, () => {});
 		}
-	});
-	
-	chrome.history.onVisited.addListener(result => { //Avoid save history of extension pages
-		if (result.url.indexOf(chrome.runtime.id) != -1){
-			chrome.history.deleteUrl({url: result.url});
-		}
-	});
-	
-	chrome.windows.onCreated.addListener(windowObj => { //When a window is created
-		chrome.windows.getAll(windows => { //It gets all the normals and popups
-		alert(windows.length);
-			if (windows.length === 1){ //If it's the first window
-				chrome.storage.local.remove(['tkUser']);
-				localStorage.removeItem("url");
-			}
-		});
-	});
-	
-	chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { //When a tab is updated
-		let urlStr= tab.url;
-		let urlSearch= new URL(urlStr);
-		let url= decodeURI(decodeURIComponent(urlSearch.searchParams.get(urlCode)));
-		let isWaitingPage= urlStr.indexOf(waitPageUrl) != -1 && changeInfo.status === "complete";
-		if (isWaitingPage) { //If is waitingPage is meant that it needs to be checked the token and the privileges of the requested url
-			chrome.storage.local.get(['tkUser'], value => checkToken(value, url, tab));
-		}
-	});
+	}
+});
+
+chrome.history.onVisited.addListener(result => { //Avoid save history of extension pages
+	if (result.url.indexOf(chrome.runtime.id) != -1){
+		chrome.history.deleteUrl({url: result.url});
+	}
+});
+
+chrome.runtime.onStartup.addListener(() => { //When the browser is opened
+	chrome.storage.local.remove(['tkUser']);
+	localStorage.removeItem("url");
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { //When a tab is updated
+	let urlStr= tab.url;
+	let urlSearch= new URL(urlStr);
+	let url= decodeURI(decodeURIComponent(urlSearch.searchParams.get(urlCode)));
+	let isWaitingPage= urlStr.indexOf(waitPageUrl) != -1 && changeInfo.status === "complete";
+	if (isWaitingPage) { //If is waitingPage is meant that it needs to be checked the token and the privileges of the requested url
+		chrome.storage.local.get(['tkUser'], value => checkToken(value, url, tab));
+	}
 });
 
 
