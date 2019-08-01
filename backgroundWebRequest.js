@@ -77,7 +77,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { //When a tab is 
 	let urlSearch= new URL(urlStr);
 	let url= decodeURI(decodeURIComponent(urlSearch.searchParams.get(urlCode)));
 	let isWaitingPage= urlStr.indexOf(waitPageUrl) != -1 && changeInfo.status === "complete";
-	if (isWaitingPage) { //If is waitingPage is meant that it needs to be checked the token and the privileges of the requested url
+	if (isWaitingPage) { //If is waitingPage is meant that it needs to be checked the token and the privileges of the requested url.
 		chrome.storage.local.get(['tkUser'], value => checkToken(value, url, tab));
 	}
 });
