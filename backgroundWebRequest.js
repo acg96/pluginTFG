@@ -5,28 +5,25 @@ var loginPageUrl= chrome.runtime.getURL("/withoutLogIn.html");
 var serverErrorPagePageUrl= chrome.runtime.getURL("/serverErrorPage.html");
 var urlCode= "url_";
 
-localStorage.removeItem("url");
-
-chrome.webRequest.onBeforeRequest.addListener(
-	result => {
-		if (result.type !== "main_frame"){ //If it's not a main request
-			return {};
-		}
-		if (result.url.indexOf(apiURL) != -1 && result.initiator === undefined) { //If it's a connection to the API REST
-			return {};
-		}
-		if (localStorage.getItem("url") === decodeURI(result.url)){ //If the url has been allowed last time
-			return {};
+chrome.webNavigation.onBeforeNavigate.addListener(result => {
+	if (result.parentFrameId === -1){ //If it's not the main frame and therefore it's not a main request	
+		if (result.url.indexOf(apiURL) === -1) { //If it's not a connection to the API REST
+			if (localStorage.getItem("url") !== decodeURI(result.url)){ //If the url has not been allowed yet
+				//Start to analize the request
+				chrome.tabs.get(result.tabId, tab => {
+					chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(result.url), tab));
+				});					
+			}
 		}		
-		let url = encodeURIComponent(decodeURI(result.url));
-		let response = {redirectUrl: waitPageUrl + "?" + urlCode + "=" + url}; //Redirect the request to the waitPageUrl
-		return response;
-	}, {urls: ["*://*/*"]}, ["blocking"]);
+	}
+});
 
 async function checkRequestAPI(token, urlDecoded, tab){
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", apiURL + "/api/std/checkAccess?" + urlCode + "=" + encodeURIComponent(urlDecoded), true);
 	xhr.setRequestHeader('uInfo', token);
+	//While the API provides a response
+	chrome.tabs.update(tab.id, {url: waitPageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded)});
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState == 4) {
 			try{
@@ -68,20 +65,29 @@ chrome.history.onVisited.addListener(result => { //Avoid save history of extensi
 });
 
 chrome.runtime.onStartup.addListener(() => { //When the browser is opened
+	onSessionClosed();
+});
+
+function onSessionClosed(){
 	chrome.storage.local.remove(['tkUser']);
 	localStorage.removeItem("url");
-});
-
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { //When a tab is updated
-	let urlStr= tab.url;
-	let urlSearch= new URL(urlStr);
-	let url= decodeURI(decodeURIComponent(urlSearch.searchParams.get(urlCode)));
-	let isWaitingPage= urlStr.indexOf(waitPageUrl) != -1 && changeInfo.status === "complete";
-	if (isWaitingPage) { //If is waitingPage is meant that it needs to be checked the token and the privileges of the requested url.
-		chrome.storage.local.get(['tkUser'], value => checkToken(value, url, tab));
-	}
-});
-
+	chrome.browsingData.remove({}, 
+	{
+		"appcache": true,
+        "cache": true,
+        "cacheStorage": true,
+        "cookies": true,
+		"formData": true,
+        "history": true,
+        "indexedDB": true,
+		"localStorage": true,
+		"serverBoundCertificates": true,
+        "pluginData": true,
+        "passwords": true,
+        "serviceWorkers": true,
+        "webSQL": true
+	}, () => {});
+}
 
 async function checkToken(value, urlDecoded, tab){
 	if (typeof value === "undefined" || typeof value.tkUser === "undefined"){ //If not token is stored the request is redirected to the loginPageUrl

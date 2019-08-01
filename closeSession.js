@@ -14,5 +14,21 @@ function checkToken(){
 function logout(){
 	chrome.storage.local.remove(['tkUser']);
 	localStorage.removeItem("url");
+	chrome.browsingData.remove({}, 
+	{
+		"appcache": true,
+        "cache": true,
+        "cacheStorage": true,
+        "cookies": true,
+		"formData": true,
+        "history": true,
+        "indexedDB": true,
+		"localStorage": true,
+		"serverBoundCertificates": true,
+        "pluginData": true,
+        "passwords": true,
+        "serviceWorkers": true,
+        "webSQL": true
+	}, () => {});
 	window.close();
 }
