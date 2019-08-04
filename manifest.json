@@ -2,7 +2,7 @@
     "name": "EyeSecure",
     "version": "1.0.0",
     "description": "Extension which controls access to resources on the web",
-    "permissions": ["tabs", "webNavigation", "history", "storage", "browsingData", "http://localhost:7991/*"],
+    "permissions": ["tabs", "webNavigation", "history", "storage", "browsingData", "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991/*"],
     "background": {
         "scripts": ["backgroundWebRequest.js"],
         "persistent": true

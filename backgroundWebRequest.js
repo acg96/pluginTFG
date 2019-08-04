@@ -1,4 +1,4 @@
-var apiURL= "http://localhost:7991";
+var apiURL= "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991";
 var waitPageUrl= chrome.runtime.getURL("/waitingResponse.html");
 var bannedPageUrl= chrome.runtime.getURL("/bannedRequest.html");
 var loginPageUrl= chrome.runtime.getURL("/withoutLogIn.html");
