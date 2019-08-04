@@ -1,6 +1,13 @@
 document.querySelector('#buttonID').onclick= login;
 var apiURL= "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991";
 
+$(function () {
+  $('[data-toggle="popover"]').popover()
+})
+$('.popover-dismiss').popover({
+  trigger: 'focus'
+})
+
 function login(){
 	var username= document.querySelector('#usernameID').value.trim().toUpperCase();
 	var passw= document.querySelector('#passwordID').value.trim();
