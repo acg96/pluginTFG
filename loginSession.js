@@ -16,8 +16,9 @@ function login(){
 						var urlString= window.location.href;
 						var urlSearch= new URL(urlString);
 						var url= decodeURIComponent(urlSearch.searchParams.get("url_"));
+						var tabId= urlSearch.searchParams.get("tb_");
 						chrome.storage.local.set({'tkUser': resp.token}, () => {
-							window.location.replace(url);
+							chrome.tabs.update(parseInt(tabId), {url: url});
 						});					
 					} else {
 						document.querySelector('#errorLogIn').innerHTML= "Los datos introducidos no coinciden con ningún registro";
