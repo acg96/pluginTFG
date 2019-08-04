@@ -1,11 +1,19 @@
 {
     "name": "EyeSecure",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Extension which controls access to resources on the web",
-    "permissions": ["webRequest", "tabs", "storage", "webRequestBlocking", "*://*/*"],
+    "permissions": ["tabs", "webNavigation", "downloads", "history", "storage", "browsingData", "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991/*"],
     "background": {
         "scripts": ["backgroundWebRequest.js"],
-        "persistent": true
+        "persistent": false
+    },
+	"browser_action": {
+          "default_icon": {
+            "16": "images/icon16.png",
+            "32": "images/icon32.png"
+          },
+          "default_title": "EyeSecure",
+		  "default_popup": "closeSessionPopUp.html"
     },
     "icons": {
         "16": "images/icon16.png",
@@ -13,5 +21,6 @@
         "48": "images/icon48.png",
         "128": "images/icon128.png"
     },
-    "manifest_version": 2
+    "manifest_version": 2,
+	"content_security_policy": "script-src 'self' https://code.jquery.com https://cdnjs.cloudflare.com https://maxcdn.bootstrapcdn.com; object-src 'self'"
 }
