@@ -4,9 +4,9 @@ window.onload= checkToken;
 function checkToken(){
 	chrome.storage.local.get(['tkUser'], value => {
 		if (typeof value.tkUser === "undefined"){ //If there is no token, the actionPage button gets disabled
-			document.querySelector('#buttonCloseID').setAttribute("disabled", "disabled");
+			document.querySelector('#buttonCloseID').setAttribute("hidden", "hidden");
 		} else {
-			document.querySelector('#buttonCloseID').removeAttribute("disabled");
+			document.querySelector('#buttonCloseID').removeAttribute("hidden");
 		}
 	});
 }
