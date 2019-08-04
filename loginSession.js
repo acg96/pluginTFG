@@ -22,9 +22,11 @@ function login(){
 						});					
 					} else {
 						document.querySelector('#errorLogIn').innerHTML= "Los datos introducidos no coinciden con ningún registro";
+						document.querySelector('#errorLogIn').removeAttribute("hidden");
 					}
 				}catch(e){
 					document.querySelector('#errorLogIn').innerHTML= "El servidor no responde correctamente";
+					document.querySelector('#errorLogIn').removeAttribute("hidden");
 				}					
 			}
 		}
@@ -32,5 +34,6 @@ function login(){
 		
 	} else {
 		document.querySelector('#errorLogIn').innerHTML= "No se puede dejar ningún campo en blanco";
+		document.querySelector('#errorLogIn').removeAttribute("hidden");
 	}
 }
