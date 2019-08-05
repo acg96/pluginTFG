@@ -1,6 +1,7 @@
 var apiURL= "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991";
 var bannedPageUrl= chrome.runtime.getURL("/bannedRequest.html");
 var loginPageUrl= chrome.runtime.getURL("/withoutLogIn.html");
+var waitingPageUrl= chrome.runtime.getURL("/waitingResponse.html");
 var serverErrorPagePageUrl= chrome.runtime.getURL("/serverErrorPage.html");
 var urlCode= "url_";
 var tabCode= "tb_";
@@ -11,13 +12,18 @@ chrome.webNavigation.onCommitted.addListener(result => { //When a navigation is 
 		//Used to avoid users go back to extension pages
 		if (result.url.indexOf(chrome.runtime.id) != -1){
 			chrome.history.deleteUrl({url: result.url});
-			chrome.tabs.goBack(result.tabId, () => {});
+			chrome.tabs.goBack(result.tabId, () => { //goBack three times to avoid the repeated page
+				chrome.tabs.goBack(result.tabId, () => {
+					chrome.tabs.goBack(result.tabId, () => {});
+				});
+			});
 		}
 	}
 	if (result.parentFrameId === -1){ //If it's the main frame and therefore it's a main request	
 		if (result.url.indexOf(apiURL) === -1 && result.url.indexOf(chrome.runtime.id + "/") === -1) { //If it's not a connection to the API REST and it's not a connection to the extension web pages
 			if (localStorage.getItem("url") !== decodeURI(result.url)){ //If the url has not been allowed yet
 				//Start to analize the request
+				chrome.tabs.update(result.tabId, {url: waitingPageUrl + "?" + urlCode + "=" + result.url});
 				chrome.tabs.get(result.tabId, tab => {
 					chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(result.url), tab));
 				});	
