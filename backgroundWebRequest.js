@@ -10,17 +10,19 @@ chrome.webNavigation.onCommitted.addListener(result => { //When a navigation is 
 	localStorage.removeItem(encodeURIComponent(decodeURI(result.url)));
 	if (result.transitionQualifiers.includes("forward_back")){ //If user go back
 		//Used to avoid users go back to extension pages
-		if (result.url.indexOf(chrome.runtime.id) != -1){
+		if (result.url.indexOf("chrome-extension://" + chrome.runtime.id + "/") != -1){
 			chrome.history.deleteUrl({url: result.url});
-			chrome.tabs.goBack(result.tabId, () => { //goBack three times to avoid the repeated page
-				chrome.tabs.goBack(result.tabId, () => {
-					chrome.tabs.goBack(result.tabId, () => {});
-				});
-			});
+			setTimeout(function(){
+				chrome.tabs.goBack(result.tabId, () => { //goBack twice to avoid the current page gets repeated
+					setTimeout(function(){
+						chrome.tabs.goBack(result.tabId, () => {});
+					}, 100);
+				}); 
+			}, 100);
 		}
 	}
-	if (result.parentFrameId === -1){ //If it's the main frame and therefore it's a main request	
-		if (result.url.indexOf(apiURL) === -1 && result.url.indexOf(chrome.runtime.id + "/") === -1) { //If it's not a connection to the API REST and it's not a connection to the extension web pages
+	if (result.parentFrameId === -1 && !result.transitionQualifiers.includes("forward_back")){ //If it's the main frame and therefore it's a main request	
+		if (result.url.indexOf(apiURL) === -1 && result.url.indexOf("chrome-extension://" + chrome.runtime.id + "/") === -1) { //If it's not a connection to the API REST and it's not a connection to the extension web pages
 			if (localStorage.getItem("url") !== decodeURI(result.url)){ //If the url has not been allowed yet
 				//Start to analize the request
 				chrome.tabs.update(result.tabId, {url: waitingPageUrl + "?" + urlCode + "=" + result.url});
@@ -72,15 +74,17 @@ function checkRequestAPI(token, urlDecoded, tab){
 				}
 			}catch(e){ //If the API server has an error
 				localStorage.removeItem("url");
-				chrome.tabs.update(tab.id, {url: serverErrorPagePageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded)});
+				if (!isNaN(tab.id) && tab.id > -1){
+					chrome.tabs.update(tab.id, {url: serverErrorPagePageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded)});
+				}
 			}
 		}
 	}
-	xhr.send();	
+	xhr.send();
 }
 
 chrome.history.onVisited.addListener(result => { //Avoid save history of extension pages
-	if (result.url.indexOf(chrome.runtime.id) != -1){
+	if (result.url.indexOf("chrome-extension://" + chrome.runtime.id + "/") != -1){
 		chrome.history.deleteUrl({url: result.url});
 	}
 });

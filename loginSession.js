@@ -1,6 +1,20 @@
 document.querySelector('#buttonID').onclick= login;
 var apiURL= "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991";
 
+document.getElementById("usernameID").autofocus= true; 
+
+document.querySelector("#passwordID").addEventListener("keyup", event => {
+    if(event.key !== "Enter") return;
+    document.querySelector("#buttonID").click();
+    event.preventDefault();
+});
+
+document.querySelector("#usernameID").addEventListener("keyup", event => {
+    if(event.key !== "Enter") return;
+    document.querySelector("#buttonID").click();
+    event.preventDefault();
+});
+
 $(function () {
   $('[data-toggle="popover"]').popover()
 })
