@@ -45,9 +45,12 @@ chrome.downloads.onCreated.addListener(item => { //Used to stop or allow downloa
 		//Cancel the download
 		chrome.downloads.cancel(item.id, () => {
 			//Start to analize the request
-			chrome.tabs.get(parseInt(tabId), tab => {
-				chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(item.url), tab));
-			});	
+			try{
+				chrome.tabs.get(parseInt(tabId), tab => {
+					chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(item.url), tab));
+				});	
+			}catch(e){
+			}
 		});				
 	} else { //Returns to startpage
 		chrome.tabs.update(parseInt(tabId), {url: "chrome://newtab"});
