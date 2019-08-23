@@ -1,6 +1,8 @@
 {
     "name": "EyeSecure",
+	"short_name": "EyeSecure",
     "version": "1.1.3",
+	"author": "Andres Casillas",
     "description": "Extension which controls access to resources on the web",
     "permissions": ["tabs", "webNavigation", "downloads", "history", "storage", "browsingData", "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991/*"],
     "background": {
@@ -21,6 +23,7 @@
         "48": "images/icon48.png",
         "128": "images/icon128.png"
     },
+	"incognito": "split", 
     "manifest_version": 2,
 	"content_security_policy": "script-src 'self' https://code.jquery.com https://cdnjs.cloudflare.com https://maxcdn.bootstrapcdn.com; object-src 'self'"
 }
