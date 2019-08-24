@@ -8,21 +8,20 @@ var newTabChrome= "chrome://newtab";
 var apiCheckAccess= "api/std/checkAccess";
 var urlCode= "url_";
 var tabCode= "tb_";
+var historyArray= [];
+var indexHistory= [];
 
 chrome.webNavigation.onCommitted.addListener(result => { //When a navigation is committed
 	localStorage.removeItem(encodeURIComponent(decodeURI(result.url))); //To remove it because it's not a download
-	if (result.transitionQualifiers.includes("forward_back")){ //If user go back
+	if (result.transitionQualifiers.includes("forward_back")){ //If the user go back
 		//Used to avoid users go back to extension pages
-		if (result.url.indexOf(extensionMainUrl) != -1){
-			chrome.history.deleteUrl({url: result.url});
-			setTimeout(function(){
-				chrome.tabs.goBack(result.tabId, () => { //goBack twice to avoid the current page gets repeated
-					setTimeout(function(){
-						chrome.tabs.goBack(result.tabId, () => {});
-					}, 100);
-				}); 
-			}, 100);
+		var desireUrl= newTabChrome;
+		if (indexHistory[result.tabId] > 0){
+			--indexHistory[result.tabId];
+			desireUrl= historyArray[result.tabId][indexHistory[result.tabId]];
 		}
+		--indexHistory[result.tabId];
+		chrome.tabs.update(result.tabId, {url: desireUrl});
 	}
 	if (result.parentFrameId === -1 && !result.transitionQualifiers.includes("forward_back")){ //If it's the main frame and therefore it's a main request	
 		if (result.url.indexOf(apiURL) === -1 && result.url.indexOf(extensionMainUrl) === -1) { //If it's not a connection to the API REST and it's not a connection to the extension web pages
@@ -32,8 +31,24 @@ chrome.webNavigation.onCommitted.addListener(result => { //When a navigation is 
 				chrome.tabs.get(result.tabId, tab => {
 					chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(result.url), tab));
 				});	
+			} else {
+				//Used to store the navigation history to be used when the user go back
+				if (!isNaN(indexHistory[result.tabId])) {
+					++indexHistory[result.tabId];
+				} else {
+					indexHistory[result.tabId]= 0;
+					historyArray[result.tabId]= [];
+				}
+				historyArray[result.tabId][indexHistory[result.tabId]]= decodeURI(result.url);
 			}
 		}		
+	}
+});
+
+chrome.tabs.onRemoved.addListener((tabId, removeInfo) => { //Used to remove the goback history
+	if (!isNaN(indexHistory[tabId])) {
+		indexHistory[tabId]= -1;
+		historyArray[tabId]= [];
 	}
 });
 
