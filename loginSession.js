@@ -1,5 +1,6 @@
 document.querySelector('#buttonID').onclick= login;
-var apiURL= "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991";
+var apiURL= "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991/";
+var apiLoginUrl= "login";
 
 document.getElementById("usernameID").autofocus= true; 
 
@@ -27,7 +28,7 @@ function login(){
 	var passw= document.querySelector('#passwordID').value.trim();
 	if (username !== "" && passw !== ""){
 		var xhr = new XMLHttpRequest();
-		xhr.open("POST", apiURL + "/login", true);
+		xhr.open("POST", apiURL + apiLoginUrl, true);
 		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		xhr.onreadystatechange = function() {
 			if (xhr.readyState == 4) {
