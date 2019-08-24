@@ -1,36 +1,54 @@
-var apiURL= "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991";
+var apiURL= "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991/";
 var bannedPageUrl= chrome.runtime.getURL("/bannedRequest.html");
 var loginPageUrl= chrome.runtime.getURL("/withoutLogIn.html");
 var waitingPageUrl= chrome.runtime.getURL("/waitingResponse.html");
 var serverErrorPagePageUrl= chrome.runtime.getURL("/serverErrorPage.html");
+var extensionMainUrl= "chrome-extension://" + chrome.runtime.id + "/";
+var newTabChrome= "chrome://newtab";
+var apiCheckAccess= "api/std/checkAccess";
 var urlCode= "url_";
 var tabCode= "tb_";
+var historyArray= [];
+var indexHistory= [];
 
 chrome.webNavigation.onCommitted.addListener(result => { //When a navigation is committed
-	localStorage.removeItem(encodeURIComponent(decodeURI(result.url)));
-	if (result.transitionQualifiers.includes("forward_back")){ //If user go back
+	localStorage.removeItem(encodeURIComponent(decodeURI(result.url))); //To remove it because it's not a download
+	if (result.transitionQualifiers.includes("forward_back")){ //If the user go back
 		//Used to avoid users go back to extension pages
-		if (result.url.indexOf("chrome-extension://" + chrome.runtime.id + "/") != -1){
-			chrome.history.deleteUrl({url: result.url});
-			setTimeout(function(){
-				chrome.tabs.goBack(result.tabId, () => { //goBack twice to avoid the current page gets repeated
-					setTimeout(function(){
-						chrome.tabs.goBack(result.tabId, () => {});
-					}, 100);
-				}); 
-			}, 100);
+		var desireUrl= newTabChrome;
+		if (indexHistory[result.tabId] > 0){
+			--indexHistory[result.tabId];
+			desireUrl= historyArray[result.tabId][indexHistory[result.tabId]];
 		}
+		--indexHistory[result.tabId];
+		chrome.tabs.update(result.tabId, {url: desireUrl});
 	}
 	if (result.parentFrameId === -1 && !result.transitionQualifiers.includes("forward_back")){ //If it's the main frame and therefore it's a main request	
-		if (result.url.indexOf(apiURL) === -1 && result.url.indexOf("chrome-extension://" + chrome.runtime.id + "/") === -1) { //If it's not a connection to the API REST and it's not a connection to the extension web pages
+		if (result.url.indexOf(apiURL) === -1 && result.url.indexOf(extensionMainUrl) === -1) { //If it's not a connection to the API REST and it's not a connection to the extension web pages
 			if (localStorage.getItem("url") !== decodeURI(result.url)){ //If the url has not been allowed yet
 				//Start to analize the request
 				chrome.tabs.update(result.tabId, {url: waitingPageUrl + "?" + urlCode + "=" + result.url});
 				chrome.tabs.get(result.tabId, tab => {
 					chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(result.url), tab));
 				});	
+			} else {
+				//Used to store the navigation history to be used when the user go back
+				if (!isNaN(indexHistory[result.tabId])) {
+					++indexHistory[result.tabId];
+				} else {
+					indexHistory[result.tabId]= 0;
+					historyArray[result.tabId]= [];
+				}
+				historyArray[result.tabId][indexHistory[result.tabId]]= decodeURI(result.url);
 			}
 		}		
+	}
+});
+
+chrome.tabs.onRemoved.addListener((tabId, removeInfo) => { //Used to remove the goback history
+	if (!isNaN(indexHistory[tabId])) {
+		indexHistory[tabId]= -1;
+		historyArray[tabId]= [];
 	}
 });
 
@@ -45,18 +63,21 @@ chrome.downloads.onCreated.addListener(item => { //Used to stop or allow downloa
 		//Cancel the download
 		chrome.downloads.cancel(item.id, () => {
 			//Start to analize the request
-			chrome.tabs.get(parseInt(tabId), tab => {
-				chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(item.url), tab));
-			});	
+			try{ //Used to avoid problems when a donwload gets stuck on memory browsers
+				chrome.tabs.get(parseInt(tabId), tab => {
+					chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(item.url), tab));
+				});	
+			}catch(e){
+			}
 		});				
 	} else { //Returns to startpage
-		chrome.tabs.update(parseInt(tabId), {url: "chrome://newtab"});
+		chrome.tabs.update(parseInt(tabId), {url: newTabChrome});
 	}
 });
 
 function checkRequestAPI(token, urlDecoded, tab){
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", apiURL + "/api/std/checkAccess?" + urlCode + "=" + encodeURIComponent(urlDecoded), true);
+	xhr.open("GET", apiURL + apiCheckAccess + "?" + urlCode + "=" + encodeURIComponent(urlDecoded), true);
 	xhr.setRequestHeader('uInfo', token);
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState == 4) {
@@ -84,7 +105,7 @@ function checkRequestAPI(token, urlDecoded, tab){
 }
 
 chrome.history.onVisited.addListener(result => { //Avoid save history of extension pages
-	if (result.url.indexOf("chrome-extension://" + chrome.runtime.id + "/") != -1){
+	if (result.url.indexOf(extensionMainUrl) != -1){
 		chrome.history.deleteUrl({url: result.url});
 	}
 });
