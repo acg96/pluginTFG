@@ -19,6 +19,8 @@ chrome.webNavigation.onCommitted.addListener(result => { //When a navigation is 
 		if (indexHistory[result.tabId] > 0){
 			--indexHistory[result.tabId];
 			desireUrl= historyArray[result.tabId][indexHistory[result.tabId]];
+		} else {
+			chrome.notifications.create({type: "basic", priority: 1, requireInteraction: true, iconUrl: "images/icon32.png", title: "Información", message: "No hay más páginas para ir hacia atrás en el historial. Puede que el sitio donde busca ir esté en otra pestaña."});
 		}
 		--indexHistory[result.tabId];
 		chrome.tabs.update(result.tabId, {url: desireUrl});
@@ -68,6 +70,7 @@ chrome.downloads.onCreated.addListener(item => { //Used to stop or allow downloa
 					chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(item.url), tab));
 				});	
 			}catch(e){
+				chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Error", message: "Parece que hay una descarga pendiente que no puede ser procesada. Si no ha solicitado ninguna descarga pruebe a reiniciar el navegador y si el error continúa contacte con el administrador."});
 			}
 		});				
 	} else { //Returns to startpage
@@ -91,11 +94,12 @@ function checkRequestAPI(token, urlDecoded, tab){
 					chrome.tabs.update(tab.id, {url: bannedPageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded)});
 				} else if (resp.access === false) { //If token has expired
 					localStorage.removeItem("url");
+					chrome.notifications.create({type: "basic", priority: 1, requireInteraction: true, iconUrl: "images/icon32.png", title: "Información", message: "Tu inicio de sesión ha expirado, vuelva a iniciar sesión si desea seguir navegando."});
 					chrome.storage.local.remove(['tkUser'], () => checkToken(undefined, urlDecoded, tab));
 				}
 			}catch(e){ //If the API server has an error
 				localStorage.removeItem("url");
-				if (!isNaN(tab.id) && tab.id > -1){
+				if (tab != null && !isNaN(tab.id) && tab.id > -1){
 					chrome.tabs.update(tab.id, {url: serverErrorPagePageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded)});
 				}
 			}
