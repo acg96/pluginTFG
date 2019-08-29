@@ -64,6 +64,29 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => { //Used to remove the 
 	}
 });
 
+chrome.management.onInstalled.addListener(info => { //When an extension is installed
+	//It should notifies the action TODO
+	chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para instalar extensiones. Tu acción será notificada."});
+});
+
+chrome.management.onUninstalled.addListener(id => { //When an extension is uninstalled
+	//It should notifies the action TODO
+	chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para desinstalar extensiones. Tu acción será notificada."});
+});
+
+chrome.management.onEnabled.addListener(info => { //When an extension is enabled
+	if (info.id !== chrome.runtime.id){ //The own extension can be enabled
+		//It should notifies the action TODO
+		chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para habilitar extensiones. Tu acción será notificada."});
+		chrome.management.setEnabled(info.id, false); //It should be disabled again
+	}
+});
+
+chrome.management.onDisabled.addListener(info => { //When an extension is disabled
+	//It should notifies the action TODO
+	chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para deshabilitar extensiones. Tu acción será notificada."});
+});
+
 chrome.bookmarks.onCreated.addListener((id, bookmark) => { //When a bookmark is created it gets deleted
 	chrome.notifications.create({type: "basic", priority: 1, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción no válida", message: "No se permite añadir marcadores."});
 	chrome.bookmarks.remove(id);
@@ -80,11 +103,12 @@ chrome.downloads.onCreated.addListener(item => { //Used to stop or allow downloa
 		//Cancel the download
 		chrome.downloads.cancel(item.id, () => {
 			//Start to analize the request
-			try{ //Used to avoid problems when a donwload gets stuck on memory browsers
+			try{ //Used to avoid problems when a download gets stuck on memory browsers
 				chrome.tabs.get(parseInt(tabId), tab => {
 					chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(item.url), tab));
-				});	
+				});
 			}catch(e){
+				console.log(e);
 				chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Error", message: "Parece que hay una descarga pendiente que no puede ser procesada. Si no ha solicitado ninguna descarga pruebe a reiniciar el navegador y si el error continúa contacte con el administrador."});
 			}
 		});				
