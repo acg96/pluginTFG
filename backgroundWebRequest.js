@@ -6,6 +6,9 @@ var serverErrorPagePageUrl= chrome.runtime.getURL("/serverErrorPage.html");
 var extensionMainUrl= "chrome-extension://" + chrome.runtime.id + "/";
 var newTabChrome= "chrome://newtab";
 var apiCheckAccess= "api/std/checkAccess";
+var apiNotifyAction= "api/std/notifyAction";
+var actionCode= "action_";
+var moreInfoCode= "moreInfo_";
 var urlCode= "url_";
 var tabCode= "tb_";
 var historyArray= [];
@@ -19,15 +22,17 @@ chrome.webNavigation.onCommitted.addListener(result => { //When a navigation is 
 		if (indexHistory[result.tabId] > 0){
 			--indexHistory[result.tabId];
 			desireUrl= historyArray[result.tabId][indexHistory[result.tabId]];
+		} else {
+			chrome.notifications.create({type: "basic", priority: 1, requireInteraction: true, iconUrl: "images/icon32.png", title: "Información", message: "No hay más páginas para ir hacia atrás en el historial. Puede que el sitio donde busca ir esté en otra pestaña."});
 		}
 		--indexHistory[result.tabId];
-		chrome.tabs.update(result.tabId, {url: desireUrl});
+		updateTab(result.tabId, desireUrl);
 	}
 	if (result.parentFrameId === -1 && !result.transitionQualifiers.includes("forward_back")){ //If it's the main frame and therefore it's a main request	
 		if (result.url.indexOf(apiURL) === -1 && result.url.indexOf(extensionMainUrl) === -1) { //If it's not a connection to the API REST and it's not a connection to the extension web pages
 			if (localStorage.getItem("url") !== decodeURI(result.url)){ //If the url has not been allowed yet
 				//Start to analize the request
-				chrome.tabs.update(result.tabId, {url: waitingPageUrl + "?" + urlCode + "=" + result.url});
+				updateTab(result.tabId, waitingPageUrl + "?" + urlCode + "=" + result.url);
 				chrome.tabs.get(result.tabId, tab => {
 					chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(result.url), tab));
 				});	
@@ -45,11 +50,77 @@ chrome.webNavigation.onCommitted.addListener(result => { //When a navigation is 
 	}
 });
 
+function updateTab(tabId, newUrl){ //Used to control the tabs update without exceptions
+	if (!isNaN(tabId) && tabId > -1){
+		chrome.tabs.get(tabId, tab => {
+			if (tab != null && !isNaN(tab.id) && tab.id > -1){
+				chrome.tabs.update(tab.id, {url: newUrl});
+			}
+		});
+	}
+}
+
 chrome.tabs.onRemoved.addListener((tabId, removeInfo) => { //Used to remove the goback history
 	if (!isNaN(indexHistory[tabId])) {
 		indexHistory[tabId]= -1;
 		historyArray[tabId]= [];
 	}
+});
+
+function notifyAction(action, moreData){ //Used to notify actions
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", apiURL + apiNotifyAction, true);
+	chrome.storage.local.get(['tkUser'], value => {
+		xhr.setRequestHeader('uInfo', value.tkUser);
+		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState == 4) {
+				try{
+					var resp = JSON.parse(xhr.responseText);
+					if (resp.access === false) { //If token has expired
+						localStorage.removeItem("url");
+						chrome.notifications.create({type: "basic", priority: 1, requireInteraction: true, iconUrl: "images/icon32.png", title: "Información", message: "Tu inicio de sesión ha expirado, vuelva a iniciar sesión si desea seguir navegando."});
+						chrome.storage.local.remove(['tkUser']);
+					}
+				}catch(e){ //If the API server has an error
+					localStorage.removeItem("url");
+				}
+			}
+		}
+		xhr.send(actionCode + "=" + action + "&" + moreInfoCode + "=" + encodeURI(moreData));
+	});
+}
+
+chrome.management.onInstalled.addListener(info => { //When an extension is installed
+	var extInfo= "Name: " + info.name + " Extension ID: " + info.id;
+	notifyAction("1137", extInfo);
+	chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para instalar extensiones. Tu acción será notificada."});
+});
+
+chrome.management.onUninstalled.addListener(id => { //When an extension is uninstalled
+	var extInfo= "Extension ID: " + id;
+	notifyAction("1135", extInfo);
+	chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para desinstalar extensiones. Tu acción será notificada."});
+});
+
+chrome.management.onEnabled.addListener(info => { //When an extension is enabled
+	if (info.id !== chrome.runtime.id){ //The own extension can be enabled
+		var extInfo= "Name: " + info.name + " Extension ID: " + info.id;
+		notifyAction("1138", extInfo);
+		chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para habilitar extensiones. Tu acción será notificada."});
+		chrome.management.setEnabled(info.id, false); //It should be disabled again
+	}
+});
+
+chrome.management.onDisabled.addListener(info => { //When an extension is disabled
+	var extInfo= "Name: " + info.name + " Extension ID: " + info.id;
+	notifyAction("1136", extInfo);
+	chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para deshabilitar extensiones. Tu acción será notificada."});
+});
+
+chrome.bookmarks.onCreated.addListener((id, bookmark) => { //When a bookmark is created it gets deleted
+	chrome.notifications.create({type: "basic", priority: 1, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción no válida", message: "No se permite añadir marcadores."});
+	chrome.bookmarks.remove(id);
 });
 
 chrome.webNavigation.onBeforeNavigate.addListener(result => { //Used to know the tabId on downloads
@@ -63,15 +134,16 @@ chrome.downloads.onCreated.addListener(item => { //Used to stop or allow downloa
 		//Cancel the download
 		chrome.downloads.cancel(item.id, () => {
 			//Start to analize the request
-			try{ //Used to avoid problems when a donwload gets stuck on memory browsers
+			try{ //Used to avoid problems when a download gets stuck on memory browsers
 				chrome.tabs.get(parseInt(tabId), tab => {
 					chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(item.url), tab));
-				});	
+				});
 			}catch(e){
+				chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Error", message: "Parece que hay una descarga pendiente que no puede ser procesada. Si no ha solicitado ninguna descarga pruebe a reiniciar el navegador y si el error continúa contacte con el administrador."});
 			}
 		});				
 	} else { //Returns to startpage
-		chrome.tabs.update(parseInt(tabId), {url: newTabChrome});
+		updateTab(parseInt(tabId), newTabChrome);
 	}
 });
 
@@ -85,18 +157,19 @@ function checkRequestAPI(token, urlDecoded, tab){
 				var resp = JSON.parse(xhr.responseText);
 				if (resp.access === true && resp.privileges === true){ //If access is granted
 					localStorage.setItem("url", urlDecoded);
-					chrome.tabs.update(tab.id, {url: urlDecoded});
+					updateTab(tab.id, urlDecoded);
 				} else if (resp.access === true && resp.privileges === false) { //If access is denied
 					localStorage.removeItem("url");
-					chrome.tabs.update(tab.id, {url: bannedPageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded)});
+					updateTab(tab.id, bannedPageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded));
 				} else if (resp.access === false) { //If token has expired
 					localStorage.removeItem("url");
+					chrome.notifications.create({type: "basic", priority: 1, requireInteraction: true, iconUrl: "images/icon32.png", title: "Información", message: "Tu inicio de sesión ha expirado, vuelva a iniciar sesión si desea seguir navegando."});
 					chrome.storage.local.remove(['tkUser'], () => checkToken(undefined, urlDecoded, tab));
 				}
 			}catch(e){ //If the API server has an error
 				localStorage.removeItem("url");
-				if (!isNaN(tab.id) && tab.id > -1){
-					chrome.tabs.update(tab.id, {url: serverErrorPagePageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded)});
+				if (tab != null){
+					updateTab(tab.id, serverErrorPagePageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded));
 				}
 			}
 		}
@@ -138,7 +211,7 @@ function onSessionClosed(){
 function checkToken(value, urlDecoded, tab){
 	if (typeof value === "undefined" || typeof value.tkUser === "undefined"){ //If not token is stored the request is redirected to the loginPageUrl
 		localStorage.removeItem("url");
-		chrome.tabs.update(tab.id, {url: loginPageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded) + "&" + tabCode + "=" + tab.id});
+		updateTab(tab.id, loginPageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded) + "&" + tabCode + "=" + tab.id);
 	} else {
 		checkRequestAPI(value.tkUser, urlDecoded, tab);
 	}
