@@ -6,6 +6,9 @@ var serverErrorPagePageUrl= chrome.runtime.getURL("/serverErrorPage.html");
 var extensionMainUrl= "chrome-extension://" + chrome.runtime.id + "/";
 var newTabChrome= "chrome://newtab";
 var apiCheckAccess= "api/std/checkAccess";
+var apiNotifyAction= "api/std/notifyAction";
+var actionCode= "action_";
+var moreInfoCode= "moreInfo_";
 var urlCode= "url_";
 var tabCode= "tb_";
 var historyArray= [];
@@ -64,6 +67,57 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => { //Used to remove the 
 	}
 });
 
+function notifyAction(action, moreData){ //Used to notify actions
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", apiURL + apiNotifyAction, true);
+	chrome.storage.local.get(['tkUser'], value => {
+		xhr.setRequestHeader('uInfo', value.tkUser);
+		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState == 4) {
+				try{
+					var resp = JSON.parse(xhr.responseText);
+					if (resp.access === false) { //If token has expired
+						localStorage.removeItem("url");
+						chrome.notifications.create({type: "basic", priority: 1, requireInteraction: true, iconUrl: "images/icon32.png", title: "Información", message: "Tu inicio de sesión ha expirado, vuelva a iniciar sesión si desea seguir navegando."});
+						chrome.storage.local.remove(['tkUser']);
+					}
+				}catch(e){ //If the API server has an error
+					localStorage.removeItem("url");
+				}
+			}
+		}
+		xhr.send(actionCode + "=" + action + "&" + moreInfoCode + "=" + encodeURI(moreData));
+	});
+}
+
+chrome.management.onInstalled.addListener(info => { //When an extension is installed
+	var extInfo= "Name: " + info.name + " Extension ID: " + info.id;
+	notifyAction("1137", extInfo);
+	chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para instalar extensiones. Tu acción será notificada."});
+});
+
+chrome.management.onUninstalled.addListener(id => { //When an extension is uninstalled
+	var extInfo= "Extension ID: " + id;
+	notifyAction("1135", extInfo);
+	chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para desinstalar extensiones. Tu acción será notificada."});
+});
+
+chrome.management.onEnabled.addListener(info => { //When an extension is enabled
+	if (info.id !== chrome.runtime.id){ //The own extension can be enabled
+		var extInfo= "Name: " + info.name + " Extension ID: " + info.id;
+		notifyAction("1138", extInfo);
+		chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para habilitar extensiones. Tu acción será notificada."});
+		chrome.management.setEnabled(info.id, false); //It should be disabled again
+	}
+});
+
+chrome.management.onDisabled.addListener(info => { //When an extension is disabled
+	var extInfo= "Name: " + info.name + " Extension ID: " + info.id;
+	notifyAction("1136", extInfo);
+	chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para deshabilitar extensiones. Tu acción será notificada."});
+});
+
 chrome.bookmarks.onCreated.addListener((id, bookmark) => { //When a bookmark is created it gets deleted
 	chrome.notifications.create({type: "basic", priority: 1, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción no válida", message: "No se permite añadir marcadores."});
 	chrome.bookmarks.remove(id);
@@ -80,10 +134,10 @@ chrome.downloads.onCreated.addListener(item => { //Used to stop or allow downloa
 		//Cancel the download
 		chrome.downloads.cancel(item.id, () => {
 			//Start to analize the request
-			try{ //Used to avoid problems when a donwload gets stuck on memory browsers
+			try{ //Used to avoid problems when a download gets stuck on memory browsers
 				chrome.tabs.get(parseInt(tabId), tab => {
 					chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(item.url), tab));
-				});	
+				});
 			}catch(e){
 				chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Error", message: "Parece que hay una descarga pendiente que no puede ser procesada. Si no ha solicitado ninguna descarga pruebe a reiniciar el navegador y si el error continúa contacte con el administrador."});
 			}
