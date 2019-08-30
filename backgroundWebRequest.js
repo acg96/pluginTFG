@@ -6,6 +6,9 @@ var serverErrorPagePageUrl= chrome.runtime.getURL("/serverErrorPage.html");
 var extensionMainUrl= "chrome-extension://" + chrome.runtime.id + "/";
 var newTabChrome= "chrome://newtab";
 var apiCheckAccess= "api/std/checkAccess";
+var apiNotifyAction= "api/std/notifyAction";
+var actionCode= "action_";
+var moreInfoCode= "moreInfo_";
 var urlCode= "url_";
 var tabCode= "tb_";
 var historyArray= [];
@@ -64,26 +67,53 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => { //Used to remove the 
 	}
 });
 
+function notifyAction(action, moreData){ //Used to notify actions
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", apiURL + apiNotifyAction + "?" + actionCode + "=" + action + "&" + moreInfoCode + "=" + encodeURI(moreData), true);
+	chrome.storage.local.get(['tkUser'], value => {
+		xhr.setRequestHeader('uInfo', value.tkUser);
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState == 4) {
+				try{
+					var resp = JSON.parse(xhr.responseText);
+					if (resp.access === false) { //If token has expired
+						localStorage.removeItem("url");
+						chrome.notifications.create({type: "basic", priority: 1, requireInteraction: true, iconUrl: "images/icon32.png", title: "Información", message: "Tu inicio de sesión ha expirado, vuelva a iniciar sesión si desea seguir navegando."});
+						chrome.storage.local.remove(['tkUser']);
+					}
+				}catch(e){ //If the API server has an error
+					localStorage.removeItem("url");
+				}
+			}
+		}
+		xhr.send();
+	});
+}
+
 chrome.management.onInstalled.addListener(info => { //When an extension is installed
-	//It should notifies the action TODO
+	var extInfo= "Name: " + info.name + " Extension ID: " + info.id;
+	notifyAction("1137", extInfo);
 	chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para instalar extensiones. Tu acción será notificada."});
 });
 
 chrome.management.onUninstalled.addListener(id => { //When an extension is uninstalled
-	//It should notifies the action TODO
+	var extInfo= "Extension ID: " + id;
+	notifyAction("1135", extInfo);
 	chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para desinstalar extensiones. Tu acción será notificada."});
 });
 
 chrome.management.onEnabled.addListener(info => { //When an extension is enabled
 	if (info.id !== chrome.runtime.id){ //The own extension can be enabled
-		//It should notifies the action TODO
+		var extInfo= "Name: " + info.name + " Extension ID: " + info.id;
+		notifyAction("1138", extInfo);
 		chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para habilitar extensiones. Tu acción será notificada."});
 		chrome.management.setEnabled(info.id, false); //It should be disabled again
 	}
 });
 
 chrome.management.onDisabled.addListener(info => { //When an extension is disabled
-	//It should notifies the action TODO
+	var extInfo= "Name: " + info.name + " Extension ID: " + info.id;
+	notifyAction("1136", extInfo);
 	chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Acción prohibida", message: "No tienes permisos para deshabilitar extensiones. Tu acción será notificada."});
 });
 
