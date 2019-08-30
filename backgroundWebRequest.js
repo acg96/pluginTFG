@@ -69,9 +69,10 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => { //Used to remove the 
 
 function notifyAction(action, moreData){ //Used to notify actions
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", apiURL + apiNotifyAction + "?" + actionCode + "=" + action + "&" + moreInfoCode + "=" + encodeURI(moreData), true);
+	xhr.open("POST", apiURL + apiNotifyAction, true);
 	chrome.storage.local.get(['tkUser'], value => {
 		xhr.setRequestHeader('uInfo', value.tkUser);
+		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		xhr.onreadystatechange = function() {
 			if (xhr.readyState == 4) {
 				try{
@@ -86,7 +87,7 @@ function notifyAction(action, moreData){ //Used to notify actions
 				}
 			}
 		}
-		xhr.send();
+		xhr.send(actionCode + "=" + action + "&" + moreInfoCode + "=" + encodeURI(moreData));
 	});
 }
 
