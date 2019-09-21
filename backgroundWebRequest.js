@@ -138,9 +138,7 @@ chrome.downloads.onCreated.addListener(item => { //Used to stop or allow downloa
 				chrome.tabs.get(parseInt(tabId), tab => {
 					chrome.storage.local.get(['tkUser'], value => checkToken(value, decodeURI(item.url), tab));
 				});
-			}catch(e){
-				chrome.notifications.create({type: "basic", priority: 2, requireInteraction: true, iconUrl: "images/icon32.png", title: "Error", message: "Parece que hay una descarga pendiente que no puede ser procesada. Si no ha solicitado ninguna descarga pruebe a reiniciar el navegador y si el error continúa contacte con el administrador."});
-			}
+			}catch(e){}
 		});				
 	} else { //Returns to startpage
 		updateTab(parseInt(tabId), newTabChrome);
