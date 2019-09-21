@@ -7,15 +7,15 @@
     "permissions": ["tabs", "webNavigation", "downloads", "bookmarks", "notifications", "management", "history", "storage", "browsingData", "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991/*"],
     "background": {
         "scripts": [
-		"publicPropertiesJS.js",
-		"privatePropertiesJS.js",
-		"publicUtilsJS.js",
-		"privateUtilsJS.js",
-		"manageHistoryJS.js",
-		"extensionsManagementJS.js",
-		"otherEventsManagement.js",
-		"tOfJS.js",
-		"backgroundWebRequest.js"],
+		"coreJS/publicPropertiesJS.js",
+		"coreJS/privatePropertiesJS.js",
+		"coreJS/publicUtilsJS.js",
+		"coreJS/privateUtilsJS.js",
+		"coreJS/manageHistoryJS.js",
+		"coreJS/extensionsManagementJS.js",
+		"coreJS/otherEventsManagementJS.js",
+		"coreJS/tOfJS.js",
+		"coreJS/manageRequestsJS.js"],
         "persistent": false
     },
 	"browser_action": {

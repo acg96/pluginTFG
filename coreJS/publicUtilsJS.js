@@ -33,7 +33,7 @@ function updateTab(tabId, newUrl){
 
 //Used to show notifications on windows tray
 function showTrayNotification(priority, title, message){
-	chrome.notifications.create({type: "basic", priority: priority, requireInteraction: true, iconUrl: "images/icon32.png", title: title, message: message});
+	chrome.notifications.create({type: "basic", priority: priority, requireInteraction: true, iconUrl: "../images/icon32.png", title: title, message: message});
 }
 
 //Used to make requests
