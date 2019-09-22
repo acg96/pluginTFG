@@ -1,7 +1,6 @@
 //Used to remove navigation data when session is closed
 function onSessionClosed(){
 	chrome.storage.local.remove([tkLocalStorage]);
-	localStorage.removeItem(urlLocalStorage);
 	disableToF(() => {});
 	chrome.storage.local.remove([cacheLocalStorage]);
 	chrome.storage.local.remove([whiteListCheckLocalStorage]);

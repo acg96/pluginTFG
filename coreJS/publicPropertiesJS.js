@@ -5,7 +5,6 @@ var moreInfoCode= "moreInfo_";
 var urlCode= "url_";
 var tabCode= "tb_";
 var tkLocalStorage= "tkUser";
-var urlLocalStorage= "url";
 var activatedToFLocalStorage= "isToF";
 var cacheLocalStorage= "cacheUrls";
 var whiteListCheckLocalStorage= "whiteListCheck";

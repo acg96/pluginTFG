@@ -21,13 +21,11 @@ function notifyAction(action, moreData){
 				xhr => {
 					var resp = JSON.parse(xhr.responseText);
 					if (resp.access === false) { //If token has expired
-						localStorage.removeItem(urlLocalStorage);
 						showTrayNotification(1, "Información", "Tu inicio de sesión ha expirado, vuelva a iniciar sesión si desea seguir navegando.");
 						chrome.storage.local.remove([tkLocalStorage]);
 					}
 				},
 				() => {
-					localStorage.removeItem(urlLocalStorage);
 				}
 		);
 	});
