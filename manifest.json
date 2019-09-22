@@ -16,7 +16,8 @@
 		"coreJS/otherEventsManagementJS.js",
 		"coreJS/publictOfJS.js",
 		"coreJS/privatetOfJS.js",
-		"coreJS/manageRequestsJS.js"],
+		"coreJS/manageUrlsLocalCacheJS.js",
+		"coreJS/manageRequestEventsJS.js"],
         "persistent": false
     },
 	"browser_action": {

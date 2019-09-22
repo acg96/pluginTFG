@@ -24,11 +24,3 @@ function getUrlsOnToF(callback){
 	});	
 }
 
-//Used to disable tOf mode
-//callback -> callback function run when the tOf is disabled
-function disableToF(callback){
-	chrome.storage.local.remove([activatedToFLocalStorage], () => {
-		callback();
-	});
-}
-
