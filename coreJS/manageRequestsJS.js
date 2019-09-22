@@ -12,7 +12,7 @@ chrome.webNavigation.onCommitted.addListener(result => { //When a navigation is 
 					chrome.storage.local.get([tkLocalStorage], value => checkToken(value, decodeURI(result.url), tab));
 				});	
 			} else {
-				addToHistory(result.tabId, decodeURI(result.url));
+				addToHistory(result.tabId, decodeURI(result.url)); //Save on the go back history
 			}
 		}		
 	}
