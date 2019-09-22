@@ -2,6 +2,7 @@
 function onSessionClosed(){
 	chrome.storage.local.remove([tkLocalStorage]);
 	localStorage.removeItem(urlLocalStorage);
+	disableToF(() => {});
 	chrome.browsingData.remove({}, 
 	{
 		"appcache": true,

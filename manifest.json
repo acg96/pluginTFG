@@ -14,7 +14,8 @@
 		"coreJS/manageHistoryJS.js",
 		"coreJS/extensionsManagementJS.js",
 		"coreJS/otherEventsManagementJS.js",
-		"coreJS/tOfJS.js",
+		"coreJS/publictOfJS.js",
+		"coreJS/privatetOfJS.js",
 		"coreJS/manageRequestsJS.js"],
         "persistent": false
     },

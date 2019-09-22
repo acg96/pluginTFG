@@ -11,6 +11,7 @@
 		<script src="/extJS/bootstrap.min.js"></script>
 		<script src="/coreJS/publicPropertiesJS.js"></script>
 		<script src="/coreJS/publicUtilsJS.js"></script>
+		<script src="/coreJS/publictOfJS.js"></script>
 	</head>
     <body>
 		<div class="container-fluid">
@@ -20,11 +21,13 @@
 					<h1 class="card-header">Acción denegada</h1>
 					<div class="card-body">
 						<p id="urlPlace" class="card-text mb-4 text-truncate font-weight-light">La url solicitada es: </p>
-						<p class="card-text text-center">Tu acción va a ser notificada</p> 
+						<p id="actionNotify" class="card-text text-center" hidden>Tu acción va a ser notificada</p> 
+						<p id="tOfNotify" class="card-text text-center" hidden>Esta página no se permite si no se tiene acceso al servidor que gestiona la conexión</p> 
 					</div>
 				</div>
 			</div>
 		</div>
+		<script src="bannedRequestManagement.js"></script>
 		<script src="urlInfo.js"></script>		
     </body>
 </html>

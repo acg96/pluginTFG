@@ -6,3 +6,4 @@ var urlCode= "url_";
 var tabCode= "tb_";
 var tkLocalStorage= "tkUser";
 var urlLocalStorage= "url";
+var activatedToFLocalStorage= "isToF";

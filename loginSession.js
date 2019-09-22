@@ -47,8 +47,15 @@ function login(){
 					}
 				},
 				() => {
-					document.querySelector('#errorLogIn').innerHTML= "El servidor no responde correctamente";
+					document.querySelector('#errorLogIn').innerHTML= "El servidor no responde correctamente, solo podrá acceder a las páginas por defecto.";
 					document.querySelector('#errorLogIn').removeAttribute("hidden");
+					enableToF(() => {
+						var urlString= window.location.href;
+						var urlSearch= new URL(urlString);
+						var url= decodeURIComponent(urlSearch.searchParams.get(urlCode));
+						var tabId= urlSearch.searchParams.get(tabCode);
+						updateTab(parseInt(tabId), url);
+					});
 				}
 		);		
 	} else {
