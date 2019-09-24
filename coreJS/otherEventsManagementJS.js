@@ -32,6 +32,7 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
 						keyStorage[tkLocalStorage]= resp.token;
 						chrome.storage.local.set(keyStorage, () => {
 							callback({result: messageKey_correct});
+							//TODO CARGAR CACHE LOCAL storeUrl(urls, mode, callback)
 							updateTab(parseInt(tabId), url);
 						});					
 					} else {
