@@ -9,13 +9,11 @@
         "scripts": [
 		"coreJS/publicPropertiesJS.js",
 		"coreJS/privatePropertiesJS.js",
-		"coreJS/publicUtilsJS.js",
-		"coreJS/privateUtilsJS.js",
+		"coreJS/utilsJS.js",
 		"coreJS/manageHistoryJS.js",
 		"coreJS/extensionsManagementJS.js",
 		"coreJS/otherEventsManagementJS.js",
-		"coreJS/publictOfJS.js",
-		"coreJS/privatetOfJS.js",
+		"coreJS/tOfJS.js",
 		"coreJS/manageUrlsLocalCacheJS.js",
 		"coreJS/manageRequestEventsJS.js"],
         "persistent": false
