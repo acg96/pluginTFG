@@ -16,3 +16,4 @@ var apiCheckAccess= "api/std/checkAccess";
 var apiNotifyAction= "api/std/notifyAction";
 var headerTkName= "uInfo";
 var tOfLocalStorage= "tOf";
+var hashLocalStorage= "hshStorage";

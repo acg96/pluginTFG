@@ -71,6 +71,7 @@ function onSessionClosed(){
 	disableToF(() => {});
 	chrome.storage.local.remove([cacheLocalStorage]);
 	chrome.storage.local.remove([whiteListCheckLocalStorage]);
+	chrome.storage.local.remove([hashLocalStorage]);
 	chrome.browsingData.remove({}, 
 	{
 		"appcache": true,
