@@ -9,6 +9,38 @@ function getMainDomain(href) {
     return mainDomain;
 };
 
+//Used to get the internal IPs interfaces of each computer
+//callback -> a callback function which receives a string array param with the response or null if something happens
+function getInternalIPs(callback){
+	window.RTCPeerConnection = window.RTCPeerConnection;
+	var peerRTC= new RTCPeerConnection({iceServers:[]}), noop = function(){};
+	peerRTC.createDataChannel('');
+	peerRTC.createOffer(peerRTC.setLocalDescription.bind(peerRTC), noop);
+	peerRTC.onicecandidate= ice => {
+		if (ice && ice.candidate && ice.candidate.candidate){
+			textWithIPs= ice.srcElement.pendingLocalDescription.sdp;
+			var myIP= textWithIPs.match(/[1-9][0-9]{0,2}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/gm);
+			peerRTC.onicecandidate= noop;
+			myIP= removeRepeatedIps(myIP);
+			callback(myIP);
+		} else{
+			callback(null);
+		}
+	};
+}
+
+//Used to remove repeated ip addresses inside an array
+//ips -> string array with ips
+function removeRepeatedIps(ips){
+	var newArray= [];
+	for (var i= 0; i < ips.length; ++i){
+		if (!newArray.includes(ips[i]) && /127|255/.test(ips[i].split(".")[0]) === false){ //Avoid repeated values and not useful ips
+			newArray.push(ips[i]);
+		}
+	}
+	return newArray;
+}
+
 //Used to notify actions to API
 //action -> A string code to classify the action
 //moreData -> Used to provide more data using a string
