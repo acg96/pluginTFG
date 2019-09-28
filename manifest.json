@@ -4,9 +4,20 @@
     "version": "1.2.1",
 	"author": "Andres Casillas",
     "description": "Extension which controls access to resources on the web",
-    "permissions": ["tabs", "webNavigation", "downloads", "bookmarks", "notifications", "management", "history", "storage", "browsingData", "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991/*"],
+    "permissions": ["tabs", "webNavigation", "downloads", "bookmarks", "notifications", "management", "history", "storage", "browsingData", "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991/*", "http://localhost:7991/*"],
     "background": {
-        "scripts": ["backgroundWebRequest.js"],
+        "scripts": [
+		"coreJS/publicPropertiesJS.js",
+		"coreJS/privatePropertiesJS.js",
+		"coreJS/utilsJS.js",
+		"coreJS/manageSessionJS.js",
+		"extJS/md5-2.12.0.min.js",
+		"coreJS/manageHistoryJS.js",
+		"coreJS/extensionsManagementJS.js",
+		"coreJS/otherEventsManagementJS.js",
+		"coreJS/tOfJS.js",
+		"coreJS/manageUrlsLocalCacheJS.js",
+		"coreJS/manageRequestEventsJS.js"],
         "persistent": false
     },
 	"browser_action": {
