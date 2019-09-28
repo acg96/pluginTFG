@@ -4,7 +4,7 @@ function getMainDomain(href) {
 	try{
 		var url = new URL(href);
 		var urlSplit= url.hostname.split(".");
-		mainDomain= urlSplit[urlSplit.length - 2] + "." + urlSplit[urlSplit.length - 1];
+		mainDomain= urlSplit[urlSplit.length - 2];
 	}catch(e){}
     return mainDomain;
 };
@@ -44,7 +44,7 @@ function removeRepeatedIps(ips){
 //Used to notify actions to API
 //action -> A string code to classify the action
 //moreData -> Used to provide more data using a string
-function notifyAction(action, moreData){
+function notifyAction(action, moreData){ //TODO
 	chrome.storage.local.get([tkLocalStorage], value => {
 		if (value != null && typeof value[tkLocalStorage] !== "undefined"){
 			makeRequest("POST", 
@@ -63,31 +63,6 @@ function notifyAction(action, moreData){
 			);
 		}
 	});
-}
-
-//Used to remove navigation data when session is closed
-function onSessionClosed(){
-	chrome.storage.local.remove([tkLocalStorage]);
-	disableToF(() => {});
-	chrome.storage.local.remove([cacheLocalStorage]);
-	chrome.storage.local.remove([whiteListCheckLocalStorage]);
-	chrome.storage.local.remove([hashLocalStorage]);
-	chrome.browsingData.remove({}, 
-	{
-		"appcache": true,
-        "cache": true,
-        "cacheStorage": true,
-        "cookies": true,
-		"formData": true,
-        "history": true,
-        "indexedDB": true,
-		"localStorage": true,
-		"serverBoundCertificates": true,
-        "pluginData": true,
-        "passwords": true,
-        "serviceWorkers": true,
-        "webSQL": true
-	}, () => {});
 }
 
 //Used to control the tabs update without exceptions

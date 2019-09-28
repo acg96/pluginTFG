@@ -9,6 +9,9 @@ function checkToken(){
 				document.querySelector('#buttonCloseID').removeAttribute("hidden");
 			} else if (response.result === messageKey_disconnected){
 				document.querySelector('#buttonCloseID').setAttribute("hidden", "hidden");
+			} else if (response.result === messageKey_onToF){
+				document.querySelector('#buttonCloseID').removeAttribute("hidden");
+				document.querySelector('#buttonCloseID').innerHTML= "Quitar modo vuelo";
 			}
 		} else {
 			document.querySelector('#buttonCloseID').setAttribute("hidden", "hidden");

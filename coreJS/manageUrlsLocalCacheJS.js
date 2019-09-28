@@ -1,3 +1,47 @@
+//Used to translate the string api response to the format needed
+//apiMode -> string with the mode (whitelist or blacklist)
+function translateApiMode(apiMode){
+	var listMode= {whitelist: false};
+	if (apiMode === "whitelist"){
+		listMode.whitelist= true;
+	}
+	return listMode;
+}
+
+//Used to manage the restriction slots (EXTERNAL)
+//slots -> an array with the slots to be settled
+//callback -> a callback function used to warn when the process ends
+function manageSlots(slots, callback){
+	var isCacheSettledNow= false; //Used to know if a cache was settled and therefore the callback called
+	if (slots != null){
+		for (var i= 0; i < slots.length; ++i){
+			if (slots[i].startTime <= Date.now() && slots[i].endTime > Date.now()){ //It should be settled now
+				isCacheSettledNow= true;
+				storeUrl(slots[i].urls, translateApiMode(slots[i].listMode), () => {
+					callback();
+				});				
+			} else if (slots[i].startTime > Date.now() && slots[i].endTime > Date.now()){ //It should be programmed
+				var timeoutFunction= setTimeout(() => {
+					storeUrl(slots[i].urls, translateApiMode(slots[i].listMode), () => {
+						var timeoutFunctionEnds= setTimeout(()=>{ //To remove the restriction when arrives the slot end time
+							storeUrl([], {whitelist: false}, ()=>{});
+						}, slots[i].endTime - Date.now());
+						programmedTimeoutFunctions.push(timeoutFunctionEnds);
+					});					
+				}, slots[i].startTime - Date.now());
+				programmedTimeoutFunctions.push(timeoutFunction);
+			}
+		}
+		if (!isCacheSettledNow){
+			storeUrl([], {whitelist: false}, () => {
+				callback();
+			});
+		}
+	} else {
+		throw "The value received as slots is null";
+	}
+}
+
 //Used to store the urls necessary to check the following requests (EXTERNAL)
 //urls -> a string array with the urls to be stored
 //mode -> if it's a whitelist or a blacklist using format {whitelist: true/false}, if it's false it'll be a blacklist
@@ -115,7 +159,7 @@ function isBlackListMode(callback){
 //url -> a string with the url to be checked
 //callback -> a callback function which receives a boolean param with the result
 function checkAllowedUrl(url, callback){
-	var mainDomain= getMainDomain(url);
+	var mainDomain= getMainDomain(url); //Used to check the url is correct
 	if (mainDomain == null){
 		callback(false);
 	} else{
@@ -133,6 +177,21 @@ function checkAllowedUrl(url, callback){
 	}
 }
 
+//Used to compare the mainDomain
+//url -> string with the complete URL
+//arrayUrls -> a string array with URLs
+//return boolean
+function isMainDomainOnArray(url, arrayUrls){
+	var mainDomain= getMainDomain(url);
+	for (var i= 0; i < arrayUrls.length; ++i){
+		var auxMainDomain= getMainDomain(arrayUrls[i]);
+		if (auxMainDomain === mainDomain){
+			return true;
+		}
+	}
+	return false;
+}
+
 //Used to check the url with the current list mode
 //url -> a string with the url to be checked
 //arrayUrls -> a string array with the urls stored on cacheLocalStorage
@@ -141,13 +200,13 @@ function manageUrlWithMode(url, arrayUrls, callback){
 	chrome.storage.local.get([whiteListCheckLocalStorage], value => {
 		var whiteListMode= value[whiteListCheckLocalStorage];
 		if (whiteListMode){
-			if (arrayUrls.includes(url)){
+			if (isMainDomainOnArray(url, arrayUrls)){
 				callback(true);
 			} else{
 				callback(false);
 			}
 		} else { //blacklist
-			if (arrayUrls.includes(url)){
+			if (isMainDomainOnArray(url, arrayUrls)){
 				callback(false);
 			} else{
 				callback(true);

@@ -1,6 +1,6 @@
 //Used to store the tOf URLs when the extension is installed or updated
 chrome.runtime.onInstalled.addListener(details => {
-	var tOf= ["uniovi.es"];
+	var tOf= ["http://www.uniovi.es"];
 	var keyArray= {};
 	keyArray[tOfLocalStorage]= tOf;
 	chrome.storage.local.set(keyArray, () => {});
@@ -30,7 +30,11 @@ function enableToF(callback){
 	var keyArray= {};
 	keyArray[activatedToFLocalStorage]= true;
 	chrome.storage.local.set(keyArray, () => {
-		callback();
+		getUrlsOnToF(arrayUrls => {
+			storeUrl(arrayUrls, {whitelist: true}, () => {
+				callback();
+			});
+		});
 	});
 }
 
@@ -53,4 +57,19 @@ function disableToF(callback){
 		callback();
 	});
 }
+
+//Used to manage the messages send by the client content pages
+//callback -> a callback with params: message (with the information), sender (who sends the message) and callback (with the response)
+chrome.runtime.onMessage.addListener((message, sender, callback) => {
+	if (sender.url.indexOf(bannedPageUrl) != -1){ //If it's called by the bannedPage
+		isOnToF(result => {
+			if (result){
+				callback({result: messageKey_onToF});
+			} else{
+				callback({result: messageKey_noToF});
+			}
+		});
+		return true; //To ensure the response is managed asynchronously and the channel is not closed
+	}
+});
 
