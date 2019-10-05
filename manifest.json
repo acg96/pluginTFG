@@ -1,7 +1,7 @@
 {
     "name": "EyeSecure",
 	"short_name": "EyeSecure",
-    "version": "1.2.1",
+    "version": "2.0.0",
 	"author": "Andres Casillas",
     "description": "Extension which controls access to resources on the web",
     "permissions": ["tabs", "webNavigation", "downloads", "bookmarks", "notifications", "management", "history", "storage", "browsingData", "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991/*", "http://localhost:7991/*"],
