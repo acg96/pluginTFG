@@ -10,6 +10,7 @@ function manageGoBack(tabId){
 		desireUrl= historyArray[tabId][indexHistory[tabId]];
 	} else {
 		showTrayNotification(1, "Información", "No hay más páginas para ir hacia atrás en el historial. Puede que el sitio donde busca ir esté en otra pestaña.");
+		desireUrl= historyArray[tabId][indexHistory[tabId]];
 	}
 	--indexHistory[tabId];
 	updateTab(tabId, desireUrl);

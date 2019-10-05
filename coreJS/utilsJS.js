@@ -41,30 +41,6 @@ function removeRepeatedIps(ips){
 	return newArray;
 }
 
-//Used to notify actions to API
-//action -> A string code to classify the action
-//moreData -> Used to provide more data using a string
-function notifyAction(action, moreData){ //TODO
-	chrome.storage.local.get([tkLocalStorage], value => {
-		if (value != null && typeof value[tkLocalStorage] !== "undefined"){
-			makeRequest("POST", 
-					apiURL + apiNotifyAction, 
-					actionCode + "=" + action + "&" + moreInfoCode + "=" + encodeURI(moreData),
-					[{name: headerTkName, value: value[tkLocalStorage]}, {name: 'Content-type', value: 'application/x-www-form-urlencoded'}],
-					xhr => {
-						var resp = JSON.parse(xhr.responseText);
-						if (resp.access === false) { //If token has expired
-							showTrayNotification(1, "Información", "Tu inicio de sesión ha expirado, vuelva a iniciar sesión si desea seguir navegando.");
-							chrome.storage.local.remove([tkLocalStorage]);
-						}
-					},
-					() => {
-					}
-			);
-		}
-	});
-}
-
 //Used to control the tabs update without exceptions
 function updateTab(tabId, newUrl){
 	if (!isNaN(tabId) && tabId > -1){
@@ -90,6 +66,9 @@ function showTrayNotification(priority, title, message){
 //catchFunction -> a function to run when something goes wrong
 function makeRequest(httpMethod, url, postParams, headers, functionToRun, catchFunction){
 	var xhr = new XMLHttpRequest();
+	xhr.onerror = function(e){
+		catchFunction();
+	};
 	xhr.open(httpMethod.toUpperCase(), url, true);
 	for (var i= 0; i < headers.length; ++i){
 		var headerName= headers[i].name;

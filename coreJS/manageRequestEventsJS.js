@@ -37,7 +37,11 @@ function goToBannedPage(urlDecoded, tab){
 	if (tab != null){
 		updateTab(tab.id, bannedPageUrl + "?" + urlCode + "=" + encodeURIComponent(urlDecoded));
 	}
-	//Avisar a la api enviando el token si no es tOf TODO
+	isOnToF(result => {
+		if (result === false){
+			notifyAction("1139", urlDecoded); //Notifies the action if it's not in ToF mode
+		}
+	});	
 }
 
 function goToLoginPage(urlDecoded, tab){
