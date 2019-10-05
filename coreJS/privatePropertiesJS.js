@@ -1,5 +1,5 @@
-//var apiURL= "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991/";
-var apiURL= "http://localhost:7991/";
+var apiURL= "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991/";
+//var apiURL= "http://localhost:7991/";
 var apiLoginUrl= "api/login";
 var actionCode= "action_";
 var tabCode= "tb_";
