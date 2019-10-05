@@ -2,33 +2,26 @@ document.querySelector('#buttonCloseID').onclick= logout;
 window.onload= checkToken;
 
 function checkToken(){
-	chrome.storage.local.get(['tkUser'], value => {
-		if (typeof value.tkUser === "undefined"){ //If there is no token, the actionPage button gets disabled
-			document.querySelector('#buttonCloseID').setAttribute("hidden", "hidden");
+	var jsonData= {"type": messageKey_checkTk};
+	chrome.runtime.sendMessage(jsonData, response => {
+		if (response != null && response.result != null){
+			if (response.result === messageKey_connected){
+				document.querySelector('#buttonCloseID').removeAttribute("hidden");
+			} else if (response.result === messageKey_disconnected){
+				document.querySelector('#buttonCloseID').setAttribute("hidden", "hidden");
+			} else if (response.result === messageKey_onToF){
+				document.querySelector('#buttonCloseID').removeAttribute("hidden");
+				document.querySelector('#buttonCloseID').innerHTML= "Quitar modo vuelo";
+			}
 		} else {
-			document.querySelector('#buttonCloseID').removeAttribute("hidden");
+			document.querySelector('#buttonCloseID').setAttribute("hidden", "hidden");
 		}
 	});
 }
 
 function logout(){
-	chrome.storage.local.remove(['tkUser']);
-	localStorage.removeItem("url");
-	chrome.browsingData.remove({}, 
-	{
-		"appcache": true,
-        "cache": true,
-        "cacheStorage": true,
-        "cookies": true,
-		"formData": true,
-        "history": true,
-        "indexedDB": true,
-		"localStorage": true,
-		"serverBoundCertificates": true,
-        "pluginData": true,
-        "passwords": true,
-        "serviceWorkers": true,
-        "webSQL": true
-	}, () => {});
-	window.close();
+	var jsonData= {"type": messageKey_closeSession};
+	chrome.runtime.sendMessage(jsonData, response => {
+		window.close();
+	});	
 }
