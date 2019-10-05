@@ -3,8 +3,39 @@ chrome.runtime.onInstalled.addListener(details => {
 	var tOf= ["http://www.uniovi.es"];
 	var keyArray= {};
 	keyArray[tOfLocalStorage]= tOf;
+	keyArray[tofNotificationsLocalStorage]= [];
 	chrome.storage.local.set(keyArray, () => {});
 });
+
+//Used to store inside the notifications cache the notifications occurred while tof is enabled
+//notification -> a json object with the notification
+function storeNotificationOnCacheTof(notification){
+	chrome.storage.local.get([tofNotificationsLocalStorage], value => {
+		if (value != null && typeof value[tofNotificationsLocalStorage] !== "undefined"){
+			var cacheTof= value[tofNotificationsLocalStorage];
+			cacheTof.push(notification);
+			var keyArray= {};
+			keyArray[tofNotificationsLocalStorage]= cacheTof;
+			chrome.storage.local.set(keyArray, () => {});
+		}
+	}
+}
+
+//Used to upload the notification cache occurred when the extension is on tof mode
+function uploadNotificationCacheTof(){
+	chrome.storage.local.get([tofNotificationsLocalStorage], value => {
+		if (value != null && typeof value[tofNotificationsLocalStorage] !== "undefined"){
+			var cacheTof= value[tofNotificationsLocalStorage];
+			if (cacheTof.length > 0){
+				notifySomeActions(cacheTof, result => {
+					if (result === true){ //If it's correctly uploaded the cache gets deleted
+						chrome.storage.local.remove([tofNotificationsLocalStorage]);
+					}
+				});
+			}
+		}
+	}
+}
 
 //Used to know the URLs allowed on ToF
 //callback -> callback function with a string array param with the URLs allowed. It stores an empty array if tOf is not activated
