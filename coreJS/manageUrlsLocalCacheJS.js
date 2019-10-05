@@ -19,16 +19,22 @@ function manageSlots(slots, callback){
 				isCacheSettledNow= true;
 				storeUrl(slots[i].urls, translateApiMode(slots[i].listMode), () => {
 					callback();
-				});				
+				});	
+				var endtimeoutFunction= setTimeout(() => {
+					storeUrl([], {whitelist: false}, ()=>{
+					});
+				}, slots[i].endTime - Date.now());
+				programmedTimeoutFunctions.push(endtimeoutFunction);
 			} else if (slots[i].startTime > Date.now() && slots[i].endTime > Date.now()){ //It should be programmed
-				var timeoutFunction= setTimeout(() => {
-					storeUrl(slots[i].urls, translateApiMode(slots[i].listMode), () => {
+				var timeoutFunction= setTimeout((slot) => {
+					storeUrl(slot.urls, translateApiMode(slot.listMode), () => {
 						var timeoutFunctionEnds= setTimeout(()=>{ //To remove the restriction when arrives the slot end time
-							storeUrl([], {whitelist: false}, ()=>{});
-						}, slots[i].endTime - Date.now());
+							storeUrl([], {whitelist: false}, ()=>{
+							});
+						}, slot.endTime - Date.now());
 						programmedTimeoutFunctions.push(timeoutFunctionEnds);
 					});					
-				}, slots[i].startTime - Date.now());
+				}, slots[i].startTime - Date.now(), slots[i]);
 				programmedTimeoutFunctions.push(timeoutFunction);
 			}
 		}

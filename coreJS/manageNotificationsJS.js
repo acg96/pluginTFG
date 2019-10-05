@@ -28,6 +28,7 @@ function notifyAux(actionJSON, token, time){
 function notifySomeActions(actions, callback){
 	try{
 		if (actions != null && actions.length > 0){
+			var jsonToSend= {};
 			jsonToSend[actionCode]= [];
 			for (var i= 0; i < actions.length; ++i){
 				jsonToSend[actionCode].push(actions[i]);
@@ -44,7 +45,7 @@ function notifySomeActions(actions, callback){
 					}
 			);
 		}
-	} catch(error){} //If the param is not an array
+	} catch(error){callback(false)} //If the param is not an array
 }
 
 //Used to notify actions to API (EXTERNAL)

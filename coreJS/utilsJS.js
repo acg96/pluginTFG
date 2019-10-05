@@ -66,6 +66,9 @@ function showTrayNotification(priority, title, message){
 //catchFunction -> a function to run when something goes wrong
 function makeRequest(httpMethod, url, postParams, headers, functionToRun, catchFunction){
 	var xhr = new XMLHttpRequest();
+	xhr.onerror = function(e){
+		catchFunction();
+	};
 	xhr.open(httpMethod.toUpperCase(), url, true);
 	for (var i= 0; i < headers.length; ++i){
 		var headerName= headers[i].name;

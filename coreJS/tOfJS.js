@@ -18,7 +18,7 @@ function storeNotificationOnCacheTof(notification){
 			keyArray[tofNotificationsLocalStorage]= cacheTof;
 			chrome.storage.local.set(keyArray, () => {});
 		}
-	}
+	});
 }
 
 //Used to upload the notification cache occurred when the extension is on tof mode
@@ -29,12 +29,14 @@ function uploadNotificationCacheTof(){
 			if (cacheTof.length > 0){
 				notifySomeActions(cacheTof, result => {
 					if (result === true){ //If it's correctly uploaded the cache gets deleted
-						chrome.storage.local.remove([tofNotificationsLocalStorage]);
+						var keyArray= {};
+						keyArray[tofNotificationsLocalStorage]= [];
+						chrome.storage.local.set(keyArray, () => {});
 					}
 				});
 			}
 		}
-	}
+	});
 }
 
 //Used to know the URLs allowed on ToF

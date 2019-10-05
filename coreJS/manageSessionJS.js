@@ -49,7 +49,6 @@ function onSessionClosed(){
 		"formData": true,
         "history": true,
         "indexedDB": true,
-		"localStorage": true,
 		"serverBoundCertificates": true,
         "pluginData": true,
         "passwords": true,
@@ -86,7 +85,7 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
 								manageExpireTime(resp.timeExpires);
 								manageSlots(resp.slots, () => { //To control when the different restrictions are applied
 									var keyStorage2= {};
-									keyStorage2[userIdLocalStorage]= username;
+									keyStorage2[userIdLocalStorage]= username.toUpperCase();
 									chrome.storage.local.set(keyStorage2, () => {
 										updateTab(parseInt(tabId), url);
 									});								
