@@ -93,6 +93,7 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
 										var keyStorage2= {};
 										keyStorage2[userIdLocalStorage]= username.toUpperCase();
 										chrome.storage.local.set(keyStorage2, () => {
+											notifyAction("1134", "");
 											updateTab(parseInt(tabId), url);
 										});								
 									});
