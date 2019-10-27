@@ -80,13 +80,13 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
 						var resp = JSON.parse(xhr.responseText);
 						if (resp.access === true) { //If access is granted
 							storeStartTime(resp.currentTime, () => { //Used to grant that the initial time is stored
-								uploadNotificationCacheTof(); //Used to upload the notifications produced when extension is on tof mode
 								var urlSearch= new URL(urlString);
 								var url= decodeURIComponent(urlSearch.searchParams.get(urlCode));
 								var tabId= urlSearch.searchParams.get(tabCode);
 								var keyStorage= {};
 								keyStorage[tkLocalStorage]= resp.token;
 								chrome.storage.local.set(keyStorage, () => {
+									uploadNotificationCacheTof(); //Used to upload the notifications produced when extension is on tof mode
 									callback({result: messageKey_correct});
 									manageExpireTime(resp.timeExpires);
 									manageSlots(resp.slots, () => { //To control when the different restrictions are applied

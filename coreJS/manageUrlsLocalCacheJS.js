@@ -25,14 +25,17 @@ function manageSlots(slots, callback){
 					var endtimeoutFunction= setTimeout(() => {
 						storeUrl([], {whitelist: false}, "-1", ()=>{
 						});
+						showTrayNotification(1, "Información", "La restricción ha terminado.");
 					}, slots[i].endTime - startTime);
 					programmedTimeoutFunctions.push(endtimeoutFunction);
 				} else if (slots[i].startTime > startTime && slots[i].endTime > startTime){ //It should be programmed
 					var timeoutFunction= setTimeout((slot, startTime) => {
+						showTrayNotification(1, "Información", "Se ha iniciado la restricción " + slot.groupName + ". Para cualquier duda póngase en contacto con el profesor.");
 						storeUrl(slot.urls, translateApiMode(slot.listMode), slot.slotId, () => {
 							var timeoutFunctionEnds= setTimeout(()=>{ //To remove the restriction when arrives the slot end time
 								storeUrl([], {whitelist: false}, "-1", ()=>{
 								});
+								showTrayNotification(1, "Información", "La restricción ha terminado.");
 							}, slot.endTime - slot.startTime);
 							programmedTimeoutFunctions.push(timeoutFunctionEnds);
 						});					
