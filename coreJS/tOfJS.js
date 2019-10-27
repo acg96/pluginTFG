@@ -64,7 +64,7 @@ function enableToF(callback){
 	keyArray[activatedToFLocalStorage]= true;
 	chrome.storage.local.set(keyArray, () => {
 		getUrlsOnToF(arrayUrls => {
-			storeUrl(arrayUrls, {whitelist: true}, () => {
+			storeUrl(arrayUrls, {whitelist: true}, "-1", () => {
 				callback();
 			});
 		});
