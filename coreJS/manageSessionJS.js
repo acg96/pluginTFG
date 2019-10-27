@@ -3,6 +3,7 @@ function tokenExpired(){
 	showTrayNotification(1, "Información", "Tu inicio de sesión ha expirado, vuelva a iniciar sesión si desea seguir navegando.");
 	stopProgrammedFunctions();
 	chrome.storage.local.remove([tkLocalStorage]);
+	chrome.storage.local.remove([currentSlotIdStorage]);
 	chrome.storage.local.remove([cacheLocalStorage]);
 	chrome.storage.local.remove([whiteListCheckLocalStorage]);
 	chrome.storage.local.remove([hashLocalStorage]);
@@ -13,9 +14,12 @@ function tokenExpired(){
 //expireTime -> the time in ms when the token expires
 function manageExpireTime(expireTime){
 	if (expireTime != null && expireTime > 0){
-		var whenToLaunch= expireTime - Date.now();
-		var tkExpire= setTimeout(tokenExpired, whenToLaunch);
-		programmedTimeoutFunctions.push(tkExpire);
+		getStartTime(startTime => {
+			startTime= startTime != null ? startTime : expireTime - 10000; //If startTime is not stored use expireTime minus 10 seconds to ask for loggin again
+			var whenToLaunch= expireTime - startTime;
+			var tkExpire= setTimeout(tokenExpired, whenToLaunch);
+			programmedTimeoutFunctions.push(tkExpire);
+		});
 	}
 }
 
@@ -37,6 +41,7 @@ function onSessionClosed(){
 	chrome.storage.local.remove([tkLocalStorage]);
 	disableToF(() => {});
 	chrome.storage.local.remove([cacheLocalStorage]);
+	chrome.storage.local.remove([currentSlotIdStorage]);
 	chrome.storage.local.remove([whiteListCheckLocalStorage]);
 	chrome.storage.local.remove([hashLocalStorage]);
 	chrome.storage.local.remove([userIdLocalStorage]);
@@ -74,23 +79,25 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
 					xhr => {
 						var resp = JSON.parse(xhr.responseText);
 						if (resp.access === true) { //If access is granted
-							uploadNotificationCacheTof(); //Used to upload the notifications produced when extension is on tof mode
-							var urlSearch= new URL(urlString);
-							var url= decodeURIComponent(urlSearch.searchParams.get(urlCode));
-							var tabId= urlSearch.searchParams.get(tabCode);
-							var keyStorage= {};
-							keyStorage[tkLocalStorage]= resp.token;
-							chrome.storage.local.set(keyStorage, () => {
-								callback({result: messageKey_correct});
-								manageExpireTime(resp.timeExpires);
-								manageSlots(resp.slots, () => { //To control when the different restrictions are applied
-									var keyStorage2= {};
-									keyStorage2[userIdLocalStorage]= username.toUpperCase();
-									chrome.storage.local.set(keyStorage2, () => {
-										updateTab(parseInt(tabId), url);
-									});								
-								});
-							});					
+							storeStartTime(resp.currentTime, () => { //Used to grant that the initial time is stored
+								uploadNotificationCacheTof(); //Used to upload the notifications produced when extension is on tof mode
+								var urlSearch= new URL(urlString);
+								var url= decodeURIComponent(urlSearch.searchParams.get(urlCode));
+								var tabId= urlSearch.searchParams.get(tabCode);
+								var keyStorage= {};
+								keyStorage[tkLocalStorage]= resp.token;
+								chrome.storage.local.set(keyStorage, () => {
+									callback({result: messageKey_correct});
+									manageExpireTime(resp.timeExpires);
+									manageSlots(resp.slots, () => { //To control when the different restrictions are applied
+										var keyStorage2= {};
+										keyStorage2[userIdLocalStorage]= username.toUpperCase();
+										chrome.storage.local.set(keyStorage2, () => {
+											updateTab(parseInt(tabId), url);
+										});								
+									});
+								});	
+							});				
 						} else {
 							callback({result: messageKey_incorrect});
 						}

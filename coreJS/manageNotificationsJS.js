@@ -55,24 +55,29 @@ function notifyAction(action, moreData){
 	chrome.storage.local.get([tkLocalStorage, userIdLocalStorage], value => {
 		if (value != null){
 			getInternalIPs(ips => {
-				var toSend= {
-					intIp: ips,
-					idUser: value[userIdLocalStorage],
-					actTime: Date.now(),
-					actCode: action,
-					moreInfo: moreData,
-					cacheTof: false
-				};
-				var tkData= "";
-				if (typeof value[tkLocalStorage] !== "undefined"){
-					tkData= value[tkLocalStorage];
-				}
-				isOnToF(result => {
-					if (result === true && tkData === ""){
-						notifyAux(toSend, tkData, 1);
-					} else if (result === false && tkData !== ""){
-						notifyAux(toSend, tkData, 1);
-					}
+				getCurrentTime((currentTime, correct) => {
+					getCurrentSlotId(slotId => {
+						slotId= slotId != null ? slotId : "-1";
+						var toSend= {
+							intIp: ips,
+							idUser: value[userIdLocalStorage],
+							actTime: currentTime,
+							actCode: action,
+							moreInfo: moreData,
+							cacheTof: false,
+							correctTime: correct,
+							slotId: slotId
+						};
+						var tkData= "";
+						if (typeof value[tkLocalStorage] !== "undefined"){
+							tkData= value[tkLocalStorage];
+						}
+						isOnToF(result => {
+							if ((result === true && tkData === "") || (result === false && tkData !== "")){
+								notifyAux(toSend, tkData, 1);
+							}
+						});
+					});
 				});				
 			});
 		}
