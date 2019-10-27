@@ -16,7 +16,7 @@ function notifyAux(actionJSON, token, time){
 					notifyAux(actionJSON, token, ++time);
 				}
 		);
-	} else if (time > 0 && token === ""){ //If it's on time of flight stores the notification inside a cache
+	} else if (time > 0 && (token === "" || time > numberOfStoreAttemps)){ //If it's on time of flight or if the API is not responding now stores the notification inside a cache
 		actionJSON.cacheTof= true; //Used to notice the API that it's not a hacking attempt due to the fact of notify it with another user token
 		storeNotificationOnCacheTof(actionJSON);
 	}
@@ -55,24 +55,29 @@ function notifyAction(action, moreData){
 	chrome.storage.local.get([tkLocalStorage, userIdLocalStorage], value => {
 		if (value != null){
 			getInternalIPs(ips => {
-				var toSend= {
-					intIp: ips,
-					idUser: value[userIdLocalStorage],
-					actTime: Date.now(),
-					actCode: action,
-					moreInfo: moreData,
-					cacheTof: false
-				};
-				var tkData= "";
-				if (typeof value[tkLocalStorage] !== "undefined"){
-					tkData= value[tkLocalStorage];
-				}
-				isOnToF(result => {
-					if (result === true && tkData === ""){
-						notifyAux(toSend, tkData, 1);
-					} else if (result === false && tkData !== ""){
-						notifyAux(toSend, tkData, 1);
-					}
+				getCurrentTime((currentTime, correct) => {
+					getCurrentSlotId(slotId => {
+						slotId= slotId != null ? slotId : "-1";
+						var toSend= {
+							intIp: ips,
+							idUser: value[userIdLocalStorage],
+							actTime: currentTime,
+							actCode: action,
+							moreInfo: moreData,
+							cacheTof: false,
+							correctTime: correct,
+							slotId: slotId
+						};
+						var tkData= "";
+						if (typeof value[tkLocalStorage] !== "undefined"){
+							tkData= value[tkLocalStorage];
+						}
+						isOnToF(result => {
+							if ((result === true && tkData === "") || (result === false && tkData !== "")){
+								notifyAux(toSend, tkData, 1);
+							}
+						});
+					});
 				});				
 			});
 		}

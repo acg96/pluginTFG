@@ -14,45 +14,76 @@ function translateApiMode(apiMode){
 function manageSlots(slots, callback){
 	var isCacheSettledNow= false; //Used to know if a cache was settled and therefore the callback called
 	if (slots != null){
-		for (var i= 0; i < slots.length; ++i){
-			if (slots[i].startTime <= Date.now() && slots[i].endTime > Date.now()){ //It should be settled now
-				isCacheSettledNow= true;
-				storeUrl(slots[i].urls, translateApiMode(slots[i].listMode), () => {
-					callback();
-				});	
-				var endtimeoutFunction= setTimeout(() => {
-					storeUrl([], {whitelist: false}, ()=>{
+		getStartTime(startTime => {
+			startTime= startTime != null ? startTime : 0;
+			for (var i= 0; i < slots.length; ++i){
+				if (slots[i].startTime <= startTime && slots[i].endTime > startTime){ //It should be settled now
+					isCacheSettledNow= true;
+					storeUrl(slots[i].urls, translateApiMode(slots[i].listMode), slots[i].slotId, () => {
+						callback();
 					});
-				}, slots[i].endTime - Date.now());
-				programmedTimeoutFunctions.push(endtimeoutFunction);
-			} else if (slots[i].startTime > Date.now() && slots[i].endTime > Date.now()){ //It should be programmed
-				var timeoutFunction= setTimeout((slot) => {
-					storeUrl(slot.urls, translateApiMode(slot.listMode), () => {
-						var timeoutFunctionEnds= setTimeout(()=>{ //To remove the restriction when arrives the slot end time
-							storeUrl([], {whitelist: false}, ()=>{
-							});
-						}, slot.endTime - Date.now());
-						programmedTimeoutFunctions.push(timeoutFunctionEnds);
-					});					
-				}, slots[i].startTime - Date.now(), slots[i]);
-				programmedTimeoutFunctions.push(timeoutFunction);
+					var endtimeoutFunction= setTimeout(() => {
+						storeUrl([], {whitelist: false}, "-1", ()=>{
+						});
+						showTrayNotification(1, "Información", "La restricción ha terminado.");
+					}, slots[i].endTime - startTime);
+					programmedTimeoutFunctions.push(endtimeoutFunction);
+				} else if (slots[i].startTime > startTime && slots[i].endTime > startTime){ //It should be programmed
+					var timeoutFunction= setTimeout((slot, startTime) => {
+						showTrayNotification(1, "Información", "Se ha iniciado la restricción " + slot.groupName + ". Para cualquier duda póngase en contacto con el profesor.");
+						storeUrl(slot.urls, translateApiMode(slot.listMode), slot.slotId, () => {
+							var timeoutFunctionEnds= setTimeout(()=>{ //To remove the restriction when arrives the slot end time
+								storeUrl([], {whitelist: false}, "-1", ()=>{
+								});
+								showTrayNotification(1, "Información", "La restricción ha terminado.");
+							}, slot.endTime - slot.startTime);
+							programmedTimeoutFunctions.push(timeoutFunctionEnds);
+						});					
+					}, slots[i].startTime - startTime, slots[i], startTime);
+					programmedTimeoutFunctions.push(timeoutFunction);
+				}
 			}
-		}
-		if (!isCacheSettledNow){
-			storeUrl([], {whitelist: false}, () => {
-				callback();
-			});
-		}
+			if (!isCacheSettledNow){ //If any slot applies the current time
+				storeUrl([], {whitelist: false}, "-1", () => {
+					callback();
+				});
+			}
+		});
 	} else {
 		throw "The value received as slots is null";
 	}
 }
 
+//Used to set the current slot id
+//slotId -> a string with the value
+//callback -> a callback function called when the process ends
+function setSlotId(slotId, callback){
+	var keyStorage= {};
+	keyStorage[currentSlotIdStorage]= slotId;
+	chrome.storage.local.set(keyStorage, () => {
+		callback();
+	});	
+}
+
+//Used to get the current slot id (EXTERNAL)
+//callback -> function which receives the string value or null if it's not exist
+function getCurrentSlotId(callback){
+	chrome.storage.local.get([currentSlotIdStorage], value => {
+		if (typeof value[currentSlotIdStorage] === "undefined"){
+			onSessionClosed();
+			callback(null);
+		} else {
+			callback(value[currentSlotIdStorage]);
+		}
+	});
+}
+
 //Used to store the urls necessary to check the following requests (EXTERNAL)
 //urls -> a string array with the urls to be stored
 //mode -> if it's a whitelist or a blacklist using format {whitelist: true/false}, if it's false it'll be a blacklist
+//slotId -> a string with the value
 //callback -> a callback function called when the process ends
-function storeUrl(urls, mode, callback){
+function storeUrl(urls, mode, slotId, callback){
 	var auxUrls= [];
 	if (urls != null && Array.isArray(urls)){
 		for (var i= 0; i < urls.length; ++i){
@@ -64,6 +95,7 @@ function storeUrl(urls, mode, callback){
 		throw "The urls param should be a string array";
 	}
 	if (mode != null && mode.whitelist != null && typeof mode.whitelist === "boolean"){
+		setSlotId(slotId, () => {});
 		setListMode(mode.whitelist, () => {
 			var keyArray= {};
 			keyArray[cacheLocalStorage]= auxUrls;

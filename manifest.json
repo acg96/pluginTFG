@@ -1,7 +1,7 @@
 {
     "name": "EyeSecure",
 	"short_name": "EyeSecure",
-    "version": "2.0.0",
+    "version": "2.1.0",
 	"author": "Andres Casillas",
     "description": "Extension which controls access to resources on the web",
     "permissions": ["tabs", "webNavigation", "downloads", "bookmarks", "notifications", "management", "history", "storage", "browsingData", "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991/*", "http://localhost:7991/*"],
@@ -12,6 +12,7 @@
 		"coreJS/utilsJS.js",
 		"coreJS/tOfJS.js",
 		"coreJS/manageNotificationsJS.js",
+		"coreJS/manageTimeJS.js",
 		"coreJS/manageSessionJS.js",
 		"extJS/md5-2.12.0.min.js",
 		"coreJS/manageHistoryJS.js",
@@ -19,7 +20,7 @@
 		"coreJS/otherEventsManagementJS.js",
 		"coreJS/manageUrlsLocalCacheJS.js",
 		"coreJS/manageRequestEventsJS.js"],
-        "persistent": false
+        "persistent": true
     },
 	"browser_action": {
           "default_icon": {
