@@ -32,6 +32,7 @@ function manageSlots(slots, callback){
 					var timeoutFunction= setTimeout((slot, startTime) => {
 						showTrayNotification(1, "Información", "Se ha iniciado la restricción " + slot.groupName + ". Para cualquier duda póngase en contacto con el profesor.");
 						storeUrl(slot.urls, translateApiMode(slot.listMode), slot.slotId, () => {
+							notifyAction("1133", "");
 							var timeoutFunctionEnds= setTimeout(()=>{ //To remove the restriction when arrives the slot end time
 								storeUrl([], {whitelist: false}, "-1", ()=>{
 								});
