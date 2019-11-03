@@ -55,7 +55,7 @@ function manageSlots(slots, callback){
 	}
 }
 
-//Used to set the current slot id
+//Used to set the current slot id (EXTERNAL)
 //slotId -> a string with the value
 //callback -> a callback function called when the process ends
 function setSlotId(slotId, callback){

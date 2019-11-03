@@ -34,7 +34,7 @@ function storeTodaySlotsResponse(respTime, slotsToday, correctTime, callback){
 	keyStorage2[actBolStorage]= slotsToday;	
 	var keyStorage3= {};
 	keyStorage3[actHsStorage] = calculateHashActivation(respTime, slotsToday);
-	
+	setSlotId("-1", () => {});
 	chrome.storage.local.set(keyStorage, () => {
 		chrome.storage.local.set(keyStorage2, () => {
 			chrome.storage.local.set(keyStorage3, () => {
