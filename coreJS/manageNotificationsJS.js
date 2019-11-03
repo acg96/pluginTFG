@@ -77,7 +77,7 @@ function notifyAction(action, moreData){
 						if (typeof value[tkLocalStorage] !== "undefined"){
 							tkData= value[tkLocalStorage];
 						}
-						notifyAux(toSend, tkData, 1);
+						if (tkData !== "" || action !== "1139") notifyAux(toSend, tkData, 1);
 					});
 				});				
 			});
