@@ -8,6 +8,10 @@ function tokenExpired(){
 	chrome.storage.local.remove([whiteListCheckLocalStorage]);
 	chrome.storage.local.remove([hashLocalStorage]);
 	chrome.storage.local.remove([userIdLocalStorage]);
+	chrome.storage.local.remove([actTimStorage]);
+	chrome.storage.local.remove([actBolStorage]);
+	chrome.storage.local.remove([actHsStorage]);
+	removeAllHistory();
 }
 
 //Used to manage when the token expires
@@ -38,6 +42,7 @@ function stopProgrammedFunctions(){
 //Used to remove navigation data when session is closed
 function onSessionClosed(){
 	stopProgrammedFunctions();
+	removeAllHistory();
 	chrome.storage.local.remove([tkLocalStorage]);
 	disableToF(() => {});
 	chrome.storage.local.remove([cacheLocalStorage]);
@@ -45,6 +50,9 @@ function onSessionClosed(){
 	chrome.storage.local.remove([whiteListCheckLocalStorage]);
 	chrome.storage.local.remove([hashLocalStorage]);
 	chrome.storage.local.remove([userIdLocalStorage]);
+	chrome.storage.local.remove([actTimStorage]);
+	chrome.storage.local.remove([actBolStorage]);
+	chrome.storage.local.remove([actHsStorage]);
 	chrome.browsingData.remove({}, 
 	{
 		"appcache": true,

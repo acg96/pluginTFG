@@ -25,9 +25,24 @@ function processRequest(tabId, url, callback){
 				callback(result2);
 			});
 		} else{ //Redirect to login page
-			callback(false);
-			chrome.tabs.get(parseInt(tabId), tab => {
-				goToLoginPage(decodeURI(url), tab);
+			checkExtensionActivation((correctValue, activated) => { //Check if the extension is activated
+				if (correctValue === false){
+					getTodaySlots(activated => {
+						if (activated === true){
+							chrome.tabs.get(parseInt(tabId), tab => {
+								goToLoginPage(decodeURI(url), tab);
+							});							
+						} else{
+							uploadNotificationCacheTof(); //Used to upload the notifications produced when extension is on tof mode
+						}
+					});
+				} else {
+					if (activated === true){
+						chrome.tabs.get(parseInt(tabId), tab => {
+							goToLoginPage(decodeURI(url), tab);
+						});
+					}
+				}
 			});
 		}
 	});

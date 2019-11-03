@@ -136,20 +136,24 @@ function storeHash(hashUrls, callback){
 //Used to know if the cache is not manipulated
 //callback -> a callback function which receives a boolean param
 function checkUrlsAreIntact(callback){
-	chrome.storage.local.get([cacheLocalStorage], value1 => {
-		var urls= value1[cacheLocalStorage];
-		chrome.storage.local.get([whiteListCheckLocalStorage], value2 => {
-			var mode= {whitelist: value2[whiteListCheckLocalStorage]};
-			var currentHash= calculateHash(urls, mode);
-			chrome.storage.local.get([hashLocalStorage], value => {
-				if (value != null && value[hashLocalStorage] === currentHash){
-					callback(true);
-				} else{
-					callback(false);
-				}
+	try{
+		chrome.storage.local.get([cacheLocalStorage], value1 => {
+			var urls= value1[cacheLocalStorage];
+			chrome.storage.local.get([whiteListCheckLocalStorage], value2 => {
+				var mode= {whitelist: value2[whiteListCheckLocalStorage]};
+				var currentHash= calculateHash(urls, mode);
+				chrome.storage.local.get([hashLocalStorage], value => {
+					if (value != null && value[hashLocalStorage] === currentHash){
+						callback(true);
+					} else{
+						callback(false);
+					}
+				});
 			});
 		});
-	});
+	}catch(e){
+		callback(false);
+	}
 }
 
 //Used to set the list mode

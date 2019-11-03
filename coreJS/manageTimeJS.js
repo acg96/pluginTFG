@@ -1,4 +1,4 @@
-//Used to set the start time received by the server and set the differences with the pc time
+//Used to set the start time received by the server and set the differences with the pc time (EXTERNAL)
 //startTime -> the time in ms
 //callback -> a callback function to call when the process ends
 function storeStartTime(startTime, callback){
