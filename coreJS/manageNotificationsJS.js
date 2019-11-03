@@ -11,7 +11,12 @@ function notifyAux(actionJSON, token, time){
 				apiURL + apiNotifyAction, 
 				JSON.stringify(jsonToSend),
 				[{name: headerTkName, value: token}, {name: 'Content-type', value: 'application/json;charset=UTF-8'}],
-				xhr => {},
+				xhr => {
+					var resp = JSON.parse(xhr.responseText);
+					if (resp.access !== true){
+						notifyAux(actionJSON, token, ++time);
+					}
+				},
 				() => { //If an error occurred
 					notifyAux(actionJSON, token, ++time);
 				}
@@ -72,11 +77,7 @@ function notifyAction(action, moreData){
 						if (typeof value[tkLocalStorage] !== "undefined"){
 							tkData= value[tkLocalStorage];
 						}
-						isOnToF(result => {
-							if ((result === true && tkData === "") || (result === false && tkData !== "")){
-								notifyAux(toSend, tkData, 1);
-							}
-						});
+						notifyAux(toSend, tkData, 1);
 					});
 				});				
 			});

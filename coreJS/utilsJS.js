@@ -54,7 +54,13 @@ function updateTab(tabId, newUrl){
 
 //Used to show notifications on windows tray
 function showTrayNotification(priority, title, message){
-	chrome.notifications.create({type: "basic", priority: priority, requireInteraction: true, iconUrl: "../images/icon32.png", title: title, message: message});
+	checkExtensionActivation((correctValue, activated) => { //Check if the extension is activated
+		if (correctValue === true && activated === true){
+			chrome.notifications.create({type: "basic", priority: priority, requireInteraction: true, iconUrl: "../images/icon32.png", title: title, message: message});
+		} else if (correctValue === false){
+			onSessionClosed();
+		}
+	});
 }
 
 //Used to make requests
