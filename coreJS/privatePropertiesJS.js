@@ -29,3 +29,5 @@ var currentSlotIdStorage= "currentSlotIdStorage";
 var actHsStorage= "actHsStorage";
 var actTimStorage= "actTimStorage";
 var actBolStorage= "actBolStorage";
+var timeOfCheckActivation= 300000;
+var timeOfCheckAlive= 60000;

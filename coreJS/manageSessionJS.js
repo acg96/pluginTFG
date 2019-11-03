@@ -53,6 +53,7 @@ function onSessionClosed(){
 	chrome.storage.local.remove([actTimStorage]);
 	chrome.storage.local.remove([actBolStorage]);
 	chrome.storage.local.remove([actHsStorage]);
+	programAliveSignal();
 	chrome.browsingData.remove({}, 
 	{
 		"appcache": true,

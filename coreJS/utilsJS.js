@@ -9,6 +9,14 @@ function getMainDomain(href) {
     return mainDomain;
 };
 
+//Used to send a signal to the API each certain time
+function programAliveSignal(){
+	var intervalAlive= setInterval(() => {
+		notifyAlive();
+	}, timeOfCheckAlive);
+	programmedIntervalFunctions.push(intervalAlive);
+}
+
 //Used to get the internal IPs interfaces of each computer
 //callback -> a callback function which receives a string array param with the response or null if something happens
 function getInternalIPs(callback){

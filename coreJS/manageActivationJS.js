@@ -1,3 +1,5 @@
+var programmedIntervalActivation= null;
+
 //Used to check if there is no slots today (EXTERNAL)
 //callback -> a callback function to call when the process ends which receives if the extension is activated or not
 function getTodaySlots(callback){
@@ -36,6 +38,7 @@ function storeTodaySlotsResponse(respTime, slotsToday, correctTime, callback){
 	chrome.storage.local.set(keyStorage, () => {
 		chrome.storage.local.set(keyStorage2, () => {
 			chrome.storage.local.set(keyStorage3, () => {
+				programIntervalCheckActivation(slotsToday); //To program the interval to check if there are some slots programmed today
 				if (correctTime === true){
 					storeStartTime(respTime, () => {
 						callback(slotsToday);
@@ -48,7 +51,14 @@ function storeTodaySlotsResponse(respTime, slotsToday, correctTime, callback){
 	});
 }
 
-
+//Used to program the interval to check if there are some programmed slots today
+//slotsToday -> a boolean param to indicate if the extension should be activated or not
+function programIntervalCheckActivation(slotsToday){
+	if (programmedIntervalActivation == null && slotsToday === false){
+		programmedIntervalActivation= setInterval(getTodaySlots, timeOfCheckActivation, value => {});
+		programmedIntervalFunctions.push(programmedIntervalActivation);
+	}
+}
 
 //Used to know if the activation value is not manipulated (EXTERNAL)
 //callback -> a callback function which receives a boolean param being true if the value is correct and false if the value is manipulated or not stored and
@@ -64,6 +74,7 @@ function checkExtensionActivation(callback){
 				var currentHash= calculateHashActivation(timeValue, actValue);
 				chrome.storage.local.get([actHsStorage], value => {
 					if (value != null && value[actHsStorage] === currentHash){
+						programIntervalCheckActivation(actValue); //To program the interval to check if there are some slots programmed today
 						callback(true, actValue);
 					} else{
 						callback(false, false);

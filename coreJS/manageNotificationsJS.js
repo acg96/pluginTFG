@@ -84,3 +84,39 @@ function notifyAction(action, moreData){
 		}
 	});
 }
+
+//Used to alive notifications to the API (EXTERNAL)
+function notifyAlive(){
+	chrome.storage.local.get([tkLocalStorage, userIdLocalStorage], value => {
+		if (value != null){
+			getInternalIPs(ips => {
+				getCurrentTime((currentTime, correct) => {
+					var toSend= {
+						intIp: ips,
+						idUser: value[userIdLocalStorage],
+						actTime: currentTime,
+						actCode: "1132",
+						moreInfo: "",
+						cacheTof: false,
+						correctTime: correct,
+						slotId: "-2"
+					};
+					var tkData= "";
+					if (typeof value[tkLocalStorage] !== "undefined"){
+						tkData= value[tkLocalStorage];
+					}
+					var jsonToSend= {};
+					jsonToSend[actionCode]= [];
+					jsonToSend[actionCode].push(toSend);
+					makeRequest("POST", 
+							apiURL + apiNotifyAction, 
+							JSON.stringify(jsonToSend),
+							[{name: headerTkName, value: tkData}, {name: 'Content-type', value: 'application/json;charset=UTF-8'}],
+							xhr => {},
+							() => {}
+					);
+				});				
+			});
+		}
+	});
+}
