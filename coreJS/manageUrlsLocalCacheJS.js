@@ -22,6 +22,7 @@ function manageSlots(slots, callback){
 					storeUrl(slots[i].urls, translateApiMode(slots[i].listMode), slots[i].slotId, () => {
 						callback();
 					});
+					showTrayNotification(1, "Información", "Se ha iniciado la restricción de la asignatura " + slots[i].moduleName + ". Para cualquier duda póngase en contacto con el profesor.");
 					var endtimeoutFunction= setTimeout(() => {
 						storeUrl([], {whitelist: false}, "-1", ()=>{
 						});
@@ -30,7 +31,7 @@ function manageSlots(slots, callback){
 					programmedTimeoutFunctions.push(endtimeoutFunction);
 				} else if (slots[i].startTime > startTime && slots[i].endTime > startTime){ //It should be programmed
 					var timeoutFunction= setTimeout((slot, startTime) => {
-						showTrayNotification(1, "Información", "Se ha iniciado la restricción " + slot.groupName + ". Para cualquier duda póngase en contacto con el profesor.");
+						showTrayNotification(1, "Información", "Se ha iniciado la restricción de la asignatura " + slot.moduleName + ". Para cualquier duda póngase en contacto con el profesor.");
 						storeUrl(slot.urls, translateApiMode(slot.listMode), slot.slotId, () => {
 							notifyAction("1133", "");
 							var timeoutFunctionEnds= setTimeout(()=>{ //To remove the restriction when arrives the slot end time
