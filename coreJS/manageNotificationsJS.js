@@ -11,7 +11,12 @@ function notifyAux(actionJSON, token, time){
 				apiURL + apiNotifyAction, 
 				JSON.stringify(jsonToSend),
 				[{name: headerTkName, value: token}, {name: 'Content-type', value: 'application/json;charset=UTF-8'}],
-				xhr => {},
+				xhr => {
+					var resp = JSON.parse(xhr.responseText);
+					if (resp.access !== true){
+						notifyAux(actionJSON, token, ++time);
+					}
+				},
 				() => { //If an error occurred
 					notifyAux(actionJSON, token, ++time);
 				}
@@ -72,12 +77,44 @@ function notifyAction(action, moreData){
 						if (typeof value[tkLocalStorage] !== "undefined"){
 							tkData= value[tkLocalStorage];
 						}
-						isOnToF(result => {
-							if ((result === true && tkData === "") || (result === false && tkData !== "")){
-								notifyAux(toSend, tkData, 1);
-							}
-						});
+						if (tkData !== "" || action !== "1139") notifyAux(toSend, tkData, 1);
 					});
+				});				
+			});
+		}
+	});
+}
+
+//Used to alive notifications to the API (EXTERNAL)
+function notifyAlive(){
+	chrome.storage.local.get([tkLocalStorage, userIdLocalStorage], value => {
+		if (value != null){
+			getInternalIPs(ips => {
+				getCurrentTime((currentTime, correct) => {
+					var toSend= {
+						intIp: ips,
+						idUser: value[userIdLocalStorage],
+						actTime: currentTime,
+						actCode: "1132",
+						moreInfo: "",
+						cacheTof: false,
+						correctTime: correct,
+						slotId: "-2"
+					};
+					var tkData= "";
+					if (typeof value[tkLocalStorage] !== "undefined"){
+						tkData= value[tkLocalStorage];
+					}
+					var jsonToSend= {};
+					jsonToSend[actionCode]= [];
+					jsonToSend[actionCode].push(toSend);
+					makeRequest("POST", 
+							apiURL + apiNotifyAction, 
+							JSON.stringify(jsonToSend),
+							[{name: headerTkName, value: tkData}, {name: 'Content-type', value: 'application/json;charset=UTF-8'}],
+							xhr => {},
+							() => {}
+					);
 				});				
 			});
 		}

@@ -71,7 +71,7 @@ function enableToF(callback){
 	});
 }
 
-//Used to know if it's on tOf status
+//Used to know if it's on tOf status (EXTERNAL)
 //callback -> callback function with a boolean param where the result is stored
 function isOnToF(callback){
 	chrome.storage.local.get([activatedToFLocalStorage], value => {
