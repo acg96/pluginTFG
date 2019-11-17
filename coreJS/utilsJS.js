@@ -9,6 +9,14 @@ function getMainDomain(href) {
     return mainDomain;
 };
 
+//Used to send a signal to the API each certain time
+function programAliveSignal(){
+	var intervalAlive= setInterval(() => {
+		notifyAlive();
+	}, timeOfCheckAlive);
+	programmedIntervalFunctions.push(intervalAlive);
+}
+
 //Used to get the internal IPs interfaces of each computer
 //callback -> a callback function which receives a string array param with the response or null if something happens
 function getInternalIPs(callback){
@@ -54,7 +62,13 @@ function updateTab(tabId, newUrl){
 
 //Used to show notifications on windows tray
 function showTrayNotification(priority, title, message){
-	chrome.notifications.create({type: "basic", priority: priority, requireInteraction: true, iconUrl: "../images/icon32.png", title: title, message: message});
+	checkExtensionActivation((correctValue, activated) => { //Check if the extension is activated
+		if (correctValue === true && activated === true){
+			chrome.notifications.create({type: "basic", priority: priority, requireInteraction: true, iconUrl: "../images/icon32.png", title: title, message: message});
+		} else if (correctValue === false){
+			onSessionClosed();
+		}
+	});
 }
 
 //Used to make requests

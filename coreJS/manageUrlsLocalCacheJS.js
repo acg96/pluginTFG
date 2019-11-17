@@ -22,6 +22,7 @@ function manageSlots(slots, callback){
 					storeUrl(slots[i].urls, translateApiMode(slots[i].listMode), slots[i].slotId, () => {
 						callback();
 					});
+					showTrayNotification(1, "Información", "Se ha iniciado la restricción de la asignatura " + slots[i].moduleName + ". Para cualquier duda póngase en contacto con el profesor.");
 					var endtimeoutFunction= setTimeout(() => {
 						storeUrl([], {whitelist: false}, "-1", ()=>{
 						});
@@ -30,8 +31,9 @@ function manageSlots(slots, callback){
 					programmedTimeoutFunctions.push(endtimeoutFunction);
 				} else if (slots[i].startTime > startTime && slots[i].endTime > startTime){ //It should be programmed
 					var timeoutFunction= setTimeout((slot, startTime) => {
-						showTrayNotification(1, "Información", "Se ha iniciado la restricción " + slot.groupName + ". Para cualquier duda póngase en contacto con el profesor.");
+						showTrayNotification(1, "Información", "Se ha iniciado la restricción de la asignatura " + slot.moduleName + ". Para cualquier duda póngase en contacto con el profesor.");
 						storeUrl(slot.urls, translateApiMode(slot.listMode), slot.slotId, () => {
+							notifyAction("1133", "");
 							var timeoutFunctionEnds= setTimeout(()=>{ //To remove the restriction when arrives the slot end time
 								storeUrl([], {whitelist: false}, "-1", ()=>{
 								});
@@ -54,7 +56,7 @@ function manageSlots(slots, callback){
 	}
 }
 
-//Used to set the current slot id
+//Used to set the current slot id (EXTERNAL)
 //slotId -> a string with the value
 //callback -> a callback function called when the process ends
 function setSlotId(slotId, callback){
@@ -136,17 +138,21 @@ function storeHash(hashUrls, callback){
 //callback -> a callback function which receives a boolean param
 function checkUrlsAreIntact(callback){
 	chrome.storage.local.get([cacheLocalStorage], value1 => {
-		var urls= value1[cacheLocalStorage];
+		var urls= value1 != null && typeof value1[cacheLocalStorage] !== "undefined" ? value1[cacheLocalStorage] : null;
 		chrome.storage.local.get([whiteListCheckLocalStorage], value2 => {
-			var mode= {whitelist: value2[whiteListCheckLocalStorage]};
-			var currentHash= calculateHash(urls, mode);
-			chrome.storage.local.get([hashLocalStorage], value => {
-				if (value != null && value[hashLocalStorage] === currentHash){
-					callback(true);
-				} else{
-					callback(false);
-				}
-			});
+			var mode= value2 != null && typeof value2[whiteListCheckLocalStorage] !== "undefined" ? {whitelist: value2[whiteListCheckLocalStorage]} : null;
+			if (urls == null || mode == null){
+				callback(false);
+			} else{
+				var currentHash= calculateHash(urls, mode);
+				chrome.storage.local.get([hashLocalStorage], value => {
+					if (value != null && value[hashLocalStorage] === currentHash){
+						callback(true);
+					} else{
+						callback(false);
+					}
+				});
+			}
 		});
 	});
 }
