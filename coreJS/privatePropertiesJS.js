@@ -1,5 +1,5 @@
-//var apiURL= "http://ec2-54-149-155-245.us-west-2.compute.amazonaws.com:7991/";
-var apiURL= "http://localhost:7991/";
+var apiURL= "https://ec2-54-85-152-173.compute-1.amazonaws.com:6993/";
+//var apiURL= "http://localhost:7991/";
 var apiLoginUrl= "api/login";
 var apiSlotsTodayUrl= "api/slotsToday";
 var actionCode= "action_";
